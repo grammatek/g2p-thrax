@@ -105,12 +105,17 @@ nasals_back = Optimize[nasal_clusters_back_rule];
 
 NG_NK = Optimize[ng_nk_fst @ nasals_fronting @ nasals_back];
 
-default_standard = ("ð k".utf8 : "T k".utf8) | ("l t".utf8 : "l_0 t".utf8) | ("l k".utf8 : "l_0 k".utf8)
+delete_k = CDRewrite[("k n t".utf8 : "n_0 t".utf8), "", "", sigma_star];
+DELETE_K = Optimize[delete_k];
+
+default_standard = ("ð k".utf8 : "T k".utf8) 
+  | ("l t".utf8 : "l_0 t".utf8) | ("l k".utf8 : "l_0 k".utf8)
   | ("l c".utf8 : "l_0 c".utf8) | ("l p".utf8 : "l_0 p".utf8) | ("m p".utf8 : "m_0 p".utf8) 
-  | ("m k".utf8 : "m_0 k".utf8) | (("m t".utf8|"m b t") : "m_0 t".utf8)
-  | ("n k".utf8 : "n_0 k".utf8) | ("n t".utf8 : "n_0 t".utf8) | ("ei".utf8 : "34".utf8)
+  | ("m k".utf8 : "m_0 k".utf8) | (("m t".utf8|"m b t".utf8) : "m_0 t".utf8) | ("n k t".utf8 : "n_0 t".utf8)
+  | ("n k".utf8 : "n_0 k".utf8) | ("n n s k t".utf8|"n s k t" : "n s t".utf8) | ("n t".utf8 : "n_0 t".utf8) | ("ei".utf8 : "34".utf8)
   | ("h v".utf8 : "k_h v".utf8)
-  | ("r l".utf8 : "r 7 l".utf8) | ("r n".utf8 : "r 7 n".utf8) | ("s l".utf8 : "s 7 l".utf8);
+  | ("r l".utf8 : "r 7 l".utf8) | ("r n".utf8 : "r 7 n".utf8) | ("s l".utf8 : "s 7 l".utf8) 
+  | ("s n".utf8 : "s 7 n".utf8);
 default_standard_rule = CDRewrite[default_standard, "", "", sigma_star]; 
 BASIC_G2P_STANDARD = Optimize[default_standard_rule];
 
@@ -146,8 +151,9 @@ delete_g = ("g l d".utf8 : "l 7".utf8) | ("g l t".utf8 : "l_0 t") | ("g n d".utf
 delete_g_rule = CDRewrite[delete_g, "", "", sigma_star];
 DELETE_G = Optimize[delete_g_rule];
 
-#ngl - kringla, englar
-ngl_rule = CDRewrite["n g l".utf8 : "N l".utf8, "", "", sigma_star];
+#ng reuduction - kringla, englar, tungna
+ng_reduction = ("n g l".utf8 : "N l".utf8) | ("n g n".utf8 : "N n".utf8);
+ngl_rule = CDRewrite[ng_reduction, "", "", sigma_star];
 NGL = Optimize[ngl_rule];
 
 post_aspir = ("k" : "k_h") | ("p" : "p_h") | ("t" : "t_h");
@@ -245,6 +251,6 @@ BASIC_G2P = Optimize[default_g2p_rule];
 
 step_1 = Optimize[ALIGN_GRAPHEMES @ X_KS_FST @ VOWEL_GI_FST @ SOFTEN @ K2X_FST @ NG_NK @ NGL @ DEVOICE_R];
 step_3 = Optimize[REPLACE_D @ DELETE_F @ REPLACE_F @ DELETE_G];
-step_2 = Optimize[EINN @ ASPIRATION @ FRONT @ insert_long_vowels @ H_DEVOICING @ END_DEVOICING @ DOUBLE_L @ SIMPLIFY];
+step_2 = Optimize[EINN @ DELETE_K @ ASPIRATION @ FRONT @ insert_long_vowels @ H_DEVOICING @ END_DEVOICING @ DOUBLE_L @ SIMPLIFY];
 export G2P = Optimize[step_1 @ step_2 @ step_3 @ BASIC_G2P_STANDARD @ DELETE_B @ BASIC_G2P];
  
