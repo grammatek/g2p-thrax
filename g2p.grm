@@ -57,7 +57,7 @@ x_ks = CDRewrite["x".utf8 : "k s".utf8, "", "", sigma_star];
 X_KS_FST = Optimize[x_ks];
 
 # examples: 'hugi', 'bogi'
-vowel_gi = ("a g i".utf8 : "a4 j I".utf8) | ("e g i".utf8 : "34 j I".utf8)
+vowel_gi = ("a g i".utf8 : "a4 j I".utf8) | ("æ g j".utf8 : "a4 j".utf8) | ("e g i".utf8 : "34 j I".utf8)
   | ("u g i".utf8 : "Y4 j I".utf8) | ("o g i".utf8 : "O4 j I".utf8);
 vowel_gi_rule = CDRewrite[vowel_gi, "", "", sigma_star];
 VOWEL_GI_FST = Optimize[vowel_gi_rule];
@@ -68,7 +68,7 @@ soften_cons_rule = CDRewrite[soften_cons, common.vowel common.space*, common.spa
 SOFTEN = Optimize[soften_cons_rule];
 
 # examples: 'sagt', 'blakta'
-k2x = ("k".utf8 : "x".utf8) | ("g".utf8 : "x".utf8);
+k2x = ("k k".utf8 : "x".utf8) | ("k".utf8 : "x".utf8) | ("g".utf8 : "x".utf8);
 k2x_rule = CDRewrite[k2x, common.vowel common.space*, " t".utf8, sigma_star];
 K2X_FST = Optimize[k2x_rule];
 
