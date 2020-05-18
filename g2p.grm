@@ -64,7 +64,7 @@ VOWEL_GI_FST = Optimize[vowel_gi_rule];
 
 # examples: 'sofa', 'saga'
 soften_cons = ("f".utf8 : "v".utf8) | ("g".utf8 : "G".utf8);
-soften_cons_rule = CDRewrite[soften_cons, common.vowel common.space*, common.space* (common.vowel| "ð".utf8), sigma_star];
+soften_cons_rule = CDRewrite[soften_cons, common.vowel common.space*, common.space* (common.vowel| "ð".utf8 | "r".utf8), sigma_star];
 SOFTEN = Optimize[soften_cons_rule];
 
 # examples: 'sagt', 'blakta'
@@ -138,6 +138,14 @@ replace_f = ("f l".utf8 : "p l".utf8)
 replace_f_rule = CDRewrite[replace_f, "", "", sigma_star];
 REPLACE_F = Optimize[replace_f_rule];
 
+delete_g = ("g l d".utf8 : "l 7".utf8) | ("g l t".utf8 : "l_0 t") | ("g n d".utf8 | "N 7".utf8)
+  | ("g n s t".utf8 : "N_0 s t".utf8) | ("g n t".utf8 : "N_0 t".utf8) | ("l g d".utf8 : "l 7".utf8)
+  | ("l g t".utf8 : "l_0 t".utf8) | ("l g n".utf8 : "l n".utf8) | ("n g d".utf8 : "N 7".utf8)
+  | ("n g s".utf8 : "N s".utf8) | ("n g t".utf8 : "N_0 t".utf8) | ("r g ð".utf8 : "r D".utf8)
+  | ("r g n".utf8 : "r 7 n".utf8) | ("r g t".utf8 : "r_0 t".utf8) | ("g g t".utf8 : "x t".utf8);
+delete_g_rule = CDRewrite[delete_g, "", "", sigma_star];
+DELETE_G = Optimize[delete_g_rule];
+
 #ngl - kringla, englar
 ngl_rule = CDRewrite["n g l".utf8 : "N l".utf8, "", "", sigma_star];
 NGL = Optimize[ngl_rule];
@@ -157,14 +165,15 @@ ASPIRATION = Optimize[insert_post_aspir @ insert_pre_aspir];
 # example: 'kíkja' 'eggi'
 fronting_kj = ("k j".utf8 : "c".utf8) | ("k_h j".utf8 : "c_h".utf8);
 fronting_kj_rule = CDRewrite[fronting_kj, "", "", sigma_star];
-fronting = ("k".utf8 : "c".utf8) | ("k_h".utf8 : "c_h".utf8) | ("g".utf8 : "c".utf8);
+fronting = ("k".utf8 : "c".utf8) | ("k_h".utf8 : "c_h".utf8) | ("gg".utf8 : "c".utf8) | ("g".utf8 : "c".utf8);
 fronting_rule = CDRewrite[fronting, "", common.space* common.front_vowel, sigma_star];
 FRONT = Optimize[fronting_kj_rule @ fronting_rule];
 
 # example: 'hjóla' 'hnútur' 'hrjúfur'
 h_voiceless = ("h j".utf8 : "C".utf8)
   | ("h n".utf8 : "n_0".utf8)
-  | ("h r".utf8 : "r_0".utf8);
+  | ("h r".utf8 : "r_0".utf8)
+  | ("h l".utf8 : "l_0".utf8);
 
 h_voiceless_rule = CDRewrite[h_voiceless, "[BOS]" common.space*, "", sigma_star];
 H_DEVOICING = Optimize[h_voiceless_rule];
@@ -228,7 +237,7 @@ default_g2p_rule = CDRewrite[default_g2p, "", "", sigma_star];
 BASIC_G2P = Optimize[default_g2p_rule];
 
 step_1 = Optimize[ALIGN_GRAPHEMES @ X_KS_FST @ VOWEL_GI_FST @ SOFTEN @ K2X_FST @ NG_NK @ NGL @ DEVOICE_R];
-step_3 = Optimize[REPLACE_D @ DELETE_F @ REPLACE_F];
+step_3 = Optimize[REPLACE_D @ DELETE_F @ REPLACE_F @ DELETE_G];
 step_2 = Optimize[EINN @ ASPIRATION @ FRONT @ insert_long_vowels @ H_DEVOICING @ END_DEVOICING @ SIMPLIFY];
 export G2P = Optimize[step_1 @ step_2 @ step_3 @ BASIC_G2P_STANDARD @ DELETE_B @ BASIC_G2P];
  
