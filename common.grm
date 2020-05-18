@@ -22,7 +22,7 @@ export consonant = Optimize[
            "r".utf8 | "s".utf8 | "t".utf8 |
            "v".utf8 | "x".utf8 | "þ".utf8 |
            "c".utf8 | "q".utf8 | "w".utf8 | "z".utf8 |
-		   "G".utf8 | "D".utf8 | "T".utf8 | "c".utf8 |
+		   "G".utf8 | "D".utf8 | "T".utf8 | "c".utf8 | "C".utf8
 		   "p_h".utf8 | "t_h".utf8 | "c_h".utf8 | "k_h".utf8];
 
 export liquid = Optimize["j".utf8 | "l".utf8 | "r".utf8];

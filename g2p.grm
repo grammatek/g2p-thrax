@@ -75,10 +75,11 @@ K2X_FST = Optimize[k2x_rule];
 # vowels are long in a first syllable before one consonant or before end-of-string
 # examples: 'aka' - 'a: k a', 'kú' - 'k u:', 'í - 'i:'
 long_vowels = CDRewrite[common.long_vowels_map, 
-  "[BOS]"(common.space* common.consonant* common.space*)*, 
+  "[BOS]"(common.space* common.consonant*)*, 
   common.space* ((common.consonant common.space* (common.vowel| "[EOS]")) | ("[EOS]")), 
   sigma_star];
 insert_long_vowels = Optimize[long_vowels];
+
 
 ####### VARIATION ###################
 #
@@ -106,7 +107,7 @@ NG_NK = Optimize[ng_nk_fst @ nasals_fronting @ nasals_back];
 
 default_standard = ("ð k".utf8 : "T k".utf8) | ("l t".utf8 : "l_0 t".utf8) | ("l k".utf8 : "l_0 k".utf8)
   | ("l c".utf8 : "l_0 c".utf8) | ("l p".utf8 : "l_0 p".utf8) | ("m p".utf8 : "m_0 p".utf8) 
-  | ("m k".utf8 : "m_0 k".utf8) | ("m t".utf8 : "m_0 t".utf8)
+  | ("m k".utf8 : "m_0 k".utf8) | (("m t".utf8|"m b t") : "m_0 t".utf8)
   | ("n k".utf8 : "n_0 k".utf8) | ("n t".utf8 : "n_0 t".utf8) | ("ei".utf8 : "34".utf8)
   | ("h v".utf8 : "k_h v".utf8)
   | ("r l".utf8 : "r 7 l".utf8) | ("r n".utf8 : "r 7 n".utf8);
@@ -114,6 +115,17 @@ default_standard_rule = CDRewrite[default_standard, "", "", sigma_star];
 BASIC_G2P_STANDARD = Optimize[default_standard_rule];
 
 ####### VARIATION END ###############
+
+devoice_r = ("r t".utf8 : "r_0 t".utf8);
+devoice_r_rule = CDRewrite[devoice_r, "", "", sigma_star];
+DEVOICE_R = Optimize[devoice_r_rule];
+
+delete_b = ("m b d".utf8 : "m t".utf8) | ("m b s".utf8 : "m s".utf8);
+delete_b_rule = CDRewrite[delete_b, "", "", sigma_star];
+DELETE_B = Optimize[delete_b_rule];
+
+replace_D_rule = CDRewrite[("ð".utf8 : "t".utf8), "r" common.space*, common.space* ("l"|"n"), sigma_star];
+REPLACE_D = Optimize[replace_D_rule];
 
 #ngl - kringla, englar
 ngl_rule = CDRewrite["n g l".utf8 : "N l".utf8, "", "", sigma_star];
@@ -125,7 +137,7 @@ insert_post_aspir = Optimize[post_aspir_rule];
 
 pre_aspir = ("k k".utf8 : "h k".utf8) | ("p p".utf8 : "h p".utf8) | ("t t".utf8 : "h t".utf8)
 | ("p l".utf8 : "h p l".utf8) | ("p n".utf8 : "h p n".utf8) | ("t l".utf8 : "h t l".utf8)
-  | ("t m".utf8 : "h t m".utf8) | ("t n".utf8 : "h t n".utf8) | ("k l".utf8 : "h k l".utf8) | ("k n".utf8 : "h k n".utf8);
+  | ("t m".utf8 : "h t m".utf8) | ("t n ".utf8 : "h t n ".utf8) | ("k l".utf8 : "h k l".utf8) | ("k n".utf8 : "h k n".utf8);
 pre_aspir_rule = CDRewrite[pre_aspir, common.vowel common.space*, "", sigma_star];
 insert_pre_aspir = Optimize[pre_aspir_rule];
 
@@ -145,6 +157,10 @@ h_voiceless = ("h j".utf8 : "C".utf8)
 
 h_voiceless_rule = CDRewrite[h_voiceless, "[BOS]" common.space*, "", sigma_star];
 H_DEVOICING = Optimize[h_voiceless_rule];
+
+end_devoicing = ("t n".utf8 : "t n_0".utf8);
+end_devoicing_rule = CDRewrite[end_devoicing, "", common.space* "[EOS]", sigma_star];
+END_DEVOICING = Optimize[end_devoicing_rule];
 
 # insert 't' in words containing 'einn' ('einn', 'einnig')
 einn_pattern = ("ei n n".utf8 : "34 t n_0".utf8);
@@ -188,7 +204,6 @@ default_g2p =
   | ("r k".utf8 : "r_0 k".utf8)
   | ("r p".utf8 : "r_0 p".utf8)
   | ("r s".utf8 : "r_0 s".utf8)
-  | ("r t".utf8 : "r_0 t".utf8)
   | ("c_h j".utf8 : "c_h".utf8)
   | ("c j".utf8 : "c".utf8)
   | ("3".utf8 : "e".utf8)
@@ -201,7 +216,7 @@ default_g2p_rule = CDRewrite[default_g2p, "", "", sigma_star];
 
 BASIC_G2P = Optimize[default_g2p_rule];
 
-step_1 = Optimize[ALIGN_GRAPHEMES @ X_KS_FST @ VOWEL_GI_FST @ SOFTEN @ K2X_FST @ NG_NK @ NGL];
-step_2 = Optimize[EINN @ H_DEVOICING @ ASPIRATION @ FRONT @ insert_long_vowels @ SIMPLIFY];
-export G2P = Optimize[step_1 @ step_2 @ BASIC_G2P_STANDARD @ BASIC_G2P];
+step_1 = Optimize[ALIGN_GRAPHEMES @ X_KS_FST @ VOWEL_GI_FST @ SOFTEN @ K2X_FST @ NG_NK @ NGL @ DEVOICE_R @ REPLACE_D];
+step_2 = Optimize[EINN @ ASPIRATION @ FRONT @ insert_long_vowels @ H_DEVOICING @ END_DEVOICING @ SIMPLIFY];
+export G2P = Optimize[step_1 @ step_2 @ BASIC_G2P_STANDARD @ DELETE_B @ BASIC_G2P];
  
