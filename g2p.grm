@@ -110,7 +110,7 @@ default_standard = ("ð k".utf8 : "T k".utf8) | ("l t".utf8 : "l_0 t".utf8) | ("
   | ("m k".utf8 : "m_0 k".utf8) | (("m t".utf8|"m b t") : "m_0 t".utf8)
   | ("n k".utf8 : "n_0 k".utf8) | ("n t".utf8 : "n_0 t".utf8) | ("ei".utf8 : "34".utf8)
   | ("h v".utf8 : "k_h v".utf8)
-  | ("r l".utf8 : "r 7 l".utf8) | ("r n".utf8 : "r 7 n".utf8);
+  | ("r l".utf8 : "r 7 l".utf8) | ("r n".utf8 : "r 7 n".utf8) | ("s l".utf8 : "s 7 l".utf8);
 default_standard_rule = CDRewrite[default_standard, "", "", sigma_star]; 
 BASIC_G2P_STANDARD = Optimize[default_standard_rule];
 
@@ -187,6 +187,13 @@ einn_pattern = ("ei n n".utf8 : "34 t n_0".utf8);
 einn_rule = CDRewrite[einn_pattern, "", "", sigma_star];
 EINN = Optimize[einn_rule];
 
+# 'll' rules: note that words pronunced with 'l' instaed of 'tl' will need to be hard-coded in a dictionary
+# since the pronunciation has to do with origin of the word rather than phonetic characteristics (loan words,
+# and pet names tend to be pronunced 'l' whereas the regular pronunciation is 'tl'. Example: 'villa')
+
+double_l = CDRewrite[("l l".utf8 : "t l".utf8), "", common.space* (common.vowel | "[EOS]"), sigma_star];
+DOUBLE_L = Optimize[double_l];
+
 simplify_double = ("b b".utf8 : "p".utf8) | ("d d".utf8 : "t".utf8) 
   | ("f f".utf8 : "f".utf8) | ("g g".utf8 : "k".utf8) 
   | ("k k".utf8 : "k".utf8) | ("l l".utf8 : "l".utf8) 
@@ -238,6 +245,6 @@ BASIC_G2P = Optimize[default_g2p_rule];
 
 step_1 = Optimize[ALIGN_GRAPHEMES @ X_KS_FST @ VOWEL_GI_FST @ SOFTEN @ K2X_FST @ NG_NK @ NGL @ DEVOICE_R];
 step_3 = Optimize[REPLACE_D @ DELETE_F @ REPLACE_F @ DELETE_G];
-step_2 = Optimize[EINN @ ASPIRATION @ FRONT @ insert_long_vowels @ H_DEVOICING @ END_DEVOICING @ SIMPLIFY];
+step_2 = Optimize[EINN @ ASPIRATION @ FRONT @ insert_long_vowels @ H_DEVOICING @ END_DEVOICING @ DOUBLE_L @ SIMPLIFY];
 export G2P = Optimize[step_1 @ step_2 @ step_3 @ BASIC_G2P_STANDARD @ DELETE_B @ BASIC_G2P];
  
