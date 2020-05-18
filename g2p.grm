@@ -127,6 +127,17 @@ DELETE_B = Optimize[delete_b_rule];
 replace_D_rule = CDRewrite[("ð".utf8 : "t".utf8), "r" common.space*, common.space* ("l"|"n"), sigma_star];
 REPLACE_D = Optimize[replace_D_rule];
 
+delete_f = ("f l d".utf8 : "l 7".utf8) | ("f l t".utf8 : "l_0 t".utf8) | ("l f d".utf8 : "l 7".utf8)
+  | ("l f t".utf8 : "l_0 t".utf8) | ("r f ð".utf8 : "r D".utf8) | ("r f s t".utf8 : "r_0 s t")
+  | ("r f t".utf8 : "r_0 t".utf8) | ("f n d".utf8 : "m 7") | ("f n t".utf8 : "m_0 t".utf8);
+delete_f_rule = CDRewrite[delete_f, "", "", sigma_star];
+DELETE_F = Optimize[delete_f_rule];
+
+replace_f = ("f l".utf8 : "p l".utf8)
+  | ("f n".utf8 : "p n".utf8) | ("r f l".utf8 : "r t l".utf8) | ("r f n".utf8 : "r t n".utf8);
+replace_f_rule = CDRewrite[replace_f, "", "", sigma_star];
+REPLACE_F = Optimize[replace_f_rule];
+
 #ngl - kringla, englar
 ngl_rule = CDRewrite["n g l".utf8 : "N l".utf8, "", "", sigma_star];
 NGL = Optimize[ngl_rule];
@@ -216,7 +227,8 @@ default_g2p_rule = CDRewrite[default_g2p, "", "", sigma_star];
 
 BASIC_G2P = Optimize[default_g2p_rule];
 
-step_1 = Optimize[ALIGN_GRAPHEMES @ X_KS_FST @ VOWEL_GI_FST @ SOFTEN @ K2X_FST @ NG_NK @ NGL @ DEVOICE_R @ REPLACE_D];
+step_1 = Optimize[ALIGN_GRAPHEMES @ X_KS_FST @ VOWEL_GI_FST @ SOFTEN @ K2X_FST @ NG_NK @ NGL @ DEVOICE_R];
+step_3 = Optimize[REPLACE_D @ DELETE_F @ REPLACE_F];
 step_2 = Optimize[EINN @ ASPIRATION @ FRONT @ insert_long_vowels @ H_DEVOICING @ END_DEVOICING @ SIMPLIFY];
-export G2P = Optimize[step_1 @ step_2 @ BASIC_G2P_STANDARD @ DELETE_B @ BASIC_G2P];
+export G2P = Optimize[step_1 @ step_2 @ step_3 @ BASIC_G2P_STANDARD @ DELETE_B @ BASIC_G2P];
  
