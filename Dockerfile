@@ -1,4 +1,10 @@
-FROM python:3.7-buster
+FROM alpine:latest
+
+RUN apk update && apk add --no-cache \
+    autoconf build-base binutils cmake curl file gcc g++ git libgcc libtool linux-headers make musl-dev ninja tar unzip wget
+
+# Boost
+RUN apk add --no-cache boost-dev
 
 # OpenFst
 
@@ -12,11 +18,9 @@ RUN cd /tmp \
 
 RUN cd /tmp/openfst-${FST_VERSION} \
     && ./configure  --enable-grm \
-    && make --jobs=4 \
+    && make --jobs=3 \
     && make install \
-    && rm -rd /tmp/openfst-${FST_VERSION}
-
-RUN ldconfig
+    && rm -rf /tmp/openfst-${FST_VERSION}
 
 # Thrax
 
@@ -30,6 +34,6 @@ RUN cd /tmp \
 
 RUN cd /tmp/thrax-${THRAX_VERSION} \
     && ./configure \
-    && make --jobs=4 \
+    && make --jobs=2 \
     && make install \
-    && rm -rd /tmp/thrax-${THRAX_VERSION}
+    && rm -rf /tmp/thrax-${THRAX_VERSION}
