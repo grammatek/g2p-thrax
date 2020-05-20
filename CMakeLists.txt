@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.15)
 project(thrax_g2p)
 
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 find_library(OPENFST NAMES fst)
 find_library(THRAX NAMES thrax)
