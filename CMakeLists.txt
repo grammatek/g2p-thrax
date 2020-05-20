@@ -14,4 +14,4 @@ find_package(Boost REQUIRED
 
 add_executable(thraxg2p main.cpp RewriteTesterUtils.cpp RewriteTesterUtils.h)
 target_include_directories(thraxg2p PRIVATE ${FST_INCLUDE} ${THRAX_INCLUDE})
-target_link_libraries(thraxg2p PRIVATE ${THRAX} ${OPENFST} Boost::locale Boost::filesystem)
+target_link_libraries(thraxg2p PRIVATE ${OPENFST} ${THRAX} Boost::locale Boost::filesystem)
