@@ -9,6 +9,6 @@ linux-x86:
   stage: build
   script:
     - mkdir build/ && cd build/
-    - cmake .. && make -j
+    - cmake -DCMAKE_VERBOSE_MAKEFILE=1 .. && make -j
 
 
