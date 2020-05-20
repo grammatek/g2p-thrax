@@ -1,9 +1,8 @@
-# sim-g2p
+# Thrax g2p
 
-This project provides the simg2p (grapheme to phoneme) tool to convert Icelandic words into phoneme symbols.
+This project provides the Thrax g2p (grapheme to phoneme) tool to convert Icelandic words into phonetic transcription.
 
-
-The tool is used as a command-line tool and the possible inputs are either via command line option or via file input.
+The tool is used as a command-line tool and possible word inputs are either via command line option or via file input.
 
 
 # Prerequisites
@@ -17,6 +16,9 @@ OpenFST + Thrax have to installed on the compilation host system.
 ### Compilation + Installation
 Please refer to the Dockerfile for the exact execution steps of compiling all prerequisites.
 
+## Boost
+
+The module Boost::locale is used for UTF-8 text normalization and Boost::filesystem for some file treatment.
 
 # Compilation
 This project uses CMake for compilation. If you have installed all prerequisites at standard paths, just do:

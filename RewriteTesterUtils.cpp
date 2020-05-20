@@ -3,7 +3,8 @@
 //
 
 #include "RewriteTesterUtils.h"
-#include <thrax/compat/utils.h>
+#include <boost/filesystem.hpp>
+#include <boost/locale.hpp>
 #include <fst/arc.h>
 #include <fst/flags.h>
 #include <fst/fst.h>
@@ -25,11 +26,11 @@ using ::thrax::RuleTriple;
 
 #define HISTORY_FILE ".rewrite-tester-history"
 
-DEFINE_string(far, "", "Path to the FAR.");
-DEFINE_string(rules, "", "Names of the rewrite rules.");
-DEFINE_string(input_mode, "byte", "Either \"byte\", \"utf8\", or the path to a "
+DEFINE_string(far, "g2p.far", "Path to the FAR.");
+DEFINE_string(rules, "G2P", "Names of the rewrite rules.");
+DEFINE_string(input_mode, "utf8", "Either \"byte\", \"utf8\", or the path to a "
                                   "symbol table for input parsing.");
-DEFINE_string(output_mode, "byte", "Either \"byte\", \"utf8\", or the path to "
+DEFINE_string(output_mode, "utf8", "Either \"byte\", \"utf8\", or the path to "
                                    "a symbol table for input parsing.");
 DEFINE_string(history_file, HISTORY_FILE,
               "Location of history file");
@@ -39,7 +40,7 @@ DEFINE_bool(show_details, false, "Show the output of each individual rule when"
 DEFINE_string(field_separator, " ",
               "Field separator for strings of symbols from a symbol table.");
 
-DEFINE_string(word_file, " ",
+DEFINE_string(word_file, "",
               "File with newline separated fields that should be used for input");
 
 namespace thrax {
@@ -139,7 +140,18 @@ RewriteTesterUtils::RewriteTesterUtils() :
         byte_symtab_(nullptr),
         utf8_symtab_(nullptr),
         input_symtab_(nullptr),
-        output_symtab_(nullptr)  { }
+        output_symtab_(nullptr)
+{
+    if (!FLAGS_word_file.empty())
+    {
+        namespace FS=boost::filesystem;
+        if (!FS::exists(FLAGS_word_file))
+        {
+            auto errorMsg = std::string("No such file: ") + FLAGS_word_file;
+            throw std::runtime_error(errorMsg);
+        }
+    }
+}
 
 RewriteTesterUtils::~RewriteTesterUtils() {
     delete compiler_;
@@ -286,19 +298,30 @@ const std::string RewriteTesterUtils::ProcessInput(const std::string& input,
 // Run() for interactive mode.
 void RewriteTesterUtils::Run()
 {
-    if (FLAGS_word_file != " ")
+    boost::locale::generator gen;
+    std::locale::global(gen("is_IS.UTF-8"));
+
+    // if input word file has been given, we are not using interactive mode,
+    // but each line of the word_file corresponds to a word
+    if (!FLAGS_word_file.empty())
     {
         std::ifstream file(FLAGS_word_file);
-        std::string   line;
-        while(std::getline(file, line))
+        std::string word;
+        while(std::getline(file, word))
         {
-            std::cout << line << "\t" << ProcessInput(line, false) << std::endl;
+            // words need to be in lowercase, so that our model size doesn't explode. Icelandic words are in UTF-8
+            // encoding, accordingly std::tolower would not help, therefore use boost::locale
+            auto output = ProcessInput(boost::locale::to_lower(word), false);
+            std::cout << word << "\t"
+                      << output
+                      << std::endl;
         }
     }
     else
     {
         std::string input;
-        while (ReadInput(&input)) std::cout << ProcessInput(input) << std::endl;
+        while (ReadInput(&input))
+            std::cout << ProcessInput(boost::locale::to_lower(input)) << std::endl;
     }
 }
 
