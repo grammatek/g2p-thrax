@@ -1,0 +1,14 @@
+stages:
+  - build
+
+.build:
+  image: registry.gitlab.com/sim7/thrax-based-g2p:latest
+
+linux-x86:
+  extends: .build
+  stage: build
+  script:
+    - mkdir build/ && cd build/
+    - cmake .. && make -j
+
+
