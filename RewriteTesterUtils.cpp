@@ -3,6 +3,7 @@
 //
 
 #include "RewriteTesterUtils.h"
+#include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/locale.hpp>
 #include <fst/arc.h>
@@ -162,6 +163,9 @@ RewriteTesterUtils::~RewriteTesterUtils() {
 }
 
 void RewriteTesterUtils::Initialize() {
+    boost::locale::generator gen;
+    std::locale::global(gen("is_IS.UTF-8"));
+
     CHECK(grm_.LoadArchive(FLAGS_far));
     rules_ = ::fst::StringSplit(FLAGS_rules, ',');
     byte_symtab_ = nullptr;
@@ -295,27 +299,14 @@ const std::string RewriteTesterUtils::ProcessInput(const std::string& input,
     }
 }
 
-// Run() for interactive mode.
+// Run() for interactive/file based mode.
 void RewriteTesterUtils::Run()
 {
-    boost::locale::generator gen;
-    std::locale::global(gen("is_IS.UTF-8"));
-
     // if input word file has been given, we are not using interactive mode,
     // but each line of the word_file corresponds to a word
     if (!FLAGS_word_file.empty())
     {
-        std::ifstream file(FLAGS_word_file);
-        std::string word;
-        while(std::getline(file, word))
-        {
-            // words need to be in lowercase, so that our model size doesn't explode. Icelandic words are in UTF-8
-            // encoding, accordingly std::tolower would not help, therefore use boost::locale
-            auto output = ProcessInput(boost::locale::to_lower(word), false);
-            std::cout << word << "\t"
-                      << output
-                      << std::endl;
-        }
+        processFile(FLAGS_word_file);
     }
     else
     {
@@ -325,7 +316,28 @@ void RewriteTesterUtils::Run()
     }
 }
 
-bool RewriteTesterUtils::ReadInput(std::string* s) {
+void RewriteTesterUtils::processFile(const std::string& filename)
+{
+    std::ifstream file(filename);
+    std::string word;
+    while(std::getline(file, word))
+    {
+        std::cout << word << "\t" << processWord(word) << std::endl;
+    }
+}
+
+std::string RewriteTesterUtils::processWord(const std::string &word)
+{
+    // Words need to be in lowercase, so that our model size doesn't explode. Icelandic words are in UTF-8
+    // encoding, accordingly std::tolower would not help, therefore use boost::locale
+    auto processedWord = ProcessInput(boost::locale::to_lower(word), false);
+    boost::trim(processedWord);
+    return processedWord;
+}
+
+
+bool RewriteTesterUtils::ReadInput(std::string* s)
+{
     std::cout << "Input string: ";
     return static_cast<bool>(getline(std::cin, *s));
 }

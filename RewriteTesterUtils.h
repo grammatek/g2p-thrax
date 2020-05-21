@@ -56,6 +56,12 @@ public:
     const std::string ProcessInput(const std::string& input,
                                    bool prepend_output = true);
 
+    // process whole file
+    void processFile(const std::string& filename);
+
+    // process single word and normalize it
+    std::string processWord(const std::string& word);
+
 private:
     // Reader for the input in interactive version.
     bool ReadInput(std::string* s);
