@@ -16,6 +16,7 @@ build:linux:
       - build/
 
 test:linux:
+  extends: .build
   stage: test
   script:
     - cd build/
