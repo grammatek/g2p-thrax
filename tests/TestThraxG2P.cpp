@@ -44,16 +44,28 @@ TEST(RewriteTesterUtils, TestTranscripts)
 
     // input file has <tab> separated lists of tokens in the format
     // word<tab>phonemes, so we split it
+    uint32 phonemeTranscriptsErrors = 0;
     while(std::getline(file, line))
     {
         std::regex regex{R"(\t)"};
         std::sregex_token_iterator it{line.begin(), line.end(), regex, -1};
         std::vector<std::string> words{it, {}};
+
         CHECK(words.size() == 2);
 
         auto phonemes = utils->processWord(words[0]);
-        CHECK(phonemes == words[1]);
+        if (phonemes != words[1])
+        {
+            // we want to see al false transcripts in the test output, therefore we don't bump out early
+            printf("(%s):(%s):(%s)\n", words[0].c_str(), words[1].c_str(), phonemes.c_str());
+            phonemeTranscriptsErrors++;
+        }
     }
+    if (phonemeTranscriptsErrors > 0)
+    {
+        printf("%d phoneme transcript errors\n", phonemeTranscriptsErrors);
+    }
+    CHECK(phonemeTranscriptsErrors == 0);
 }
 
 // EOF
