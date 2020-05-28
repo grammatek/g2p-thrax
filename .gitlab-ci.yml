@@ -1,0 +1,25 @@
+stages:
+  - build
+  - test
+
+.build:
+  image: registry.gitlab.com/sim7/thrax-based-g2p:latest
+
+build:linux:
+  extends: .build
+  stage: build
+  script:
+    - mkdir build/ && cd build/
+    - cmake -DCMAKE_VERBOSE_MAKEFILE=1 .. && make -j
+  artifacts:
+    paths:
+      - build/
+
+test:linux:
+  extends: .build
+  stage: test
+  script:
+    - cd build/
+    - make test
+  dependencies:
+    - build:linux

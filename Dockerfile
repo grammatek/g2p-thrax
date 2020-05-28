@@ -17,6 +17,10 @@ RUN cd /tmp \
     && rm openfst-${FST_VERSION}.tar.gz
 
 RUN cd /tmp/openfst-${FST_VERSION} \
+    && mv configure configure.bad \
+    && cat configure.bad | sed 's/-std=c++11/-std=c++17/' > configure \
+    && rm configure.bad \
+    && chmod +x configure \
     && ./configure  --enable-grm \
     && make --jobs=3 \
     && make install \
@@ -33,6 +37,10 @@ RUN cd /tmp \
     && rm thrax-${THRAX_VERSION}.tar.gz
 
 RUN cd /tmp/thrax-${THRAX_VERSION} \
+    && mv configure configure.bad \
+    && cat configure.bad | sed 's/-std=c++11/-std=c++17/' > configure \
+    && rm configure.bad \
+    && chmod +x configure \
     && ./configure \
     && make --jobs=2 \
     && make install \
