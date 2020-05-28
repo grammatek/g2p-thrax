@@ -1,7 +1,6 @@
 morgni	m O r t n I
 þönglabakka	T 9i N l a p a h k a
 traustvekjandi	t_h r 9i s t v E c a n t I
-snjóföl	s t n j ou: f 9 l
 driffjöður	t r I f j 9 D Y r
 krappan	k_h r a h p a n
 viðbrögðin	v I D p r 9 G D I n
@@ -42,13 +41,11 @@ hnokka	n_0 O h k a
 öruggt	9: r Y x t
 mömmumorgnar	m 9 m Y m O r t n a r
 tilraunum	t_h I l r 9i n Y m
-loftslagið	l O f t s t l ai j I D
 migts	m I x t s
 fjarskipti	f j a r_0 s c I f t I
 skemmtilegustu	s c E m_0 t I l E G Y s t Y
 kvöld	k_h v 9 l t
 samnefnt	s a m n E m_0 t
-sálfræðilega	s au l f r ai D I l E G a
 skurðinn	s k Y r D I n
 stebbi	s t E p I
 hershöfðinginn	h E r_0 s h 9 v D i J c I n
@@ -66,7 +63,6 @@ reddaði	r E t a D I
 starfsréttindi	s t a r f s r j E h t I n t I
 frænkur	f r ai N_0 k Y r
 valdsins	v a l t s I n s
-sálfræðings	s au l f r ai D i N s
 nefndur	n E m t Y r
 telgt	t_h E l_0 t
 toppsætinu	t_h O h p s ai t I n Y
@@ -84,11 +80,9 @@ kambsfjöru	k_h a m s f j 9 r Y
 hermdarverka	h E r m t a r v E r_0 k a
 sigldi	s I l t I
 tvinna	t_h v I n a
-hraunnibba	r_0 9i n I p a
 hengdir	h ei N t I r
 falsks	f a l s k s
 bráðabirgða	p r au: D a p I r D a
-tefldan	t_h E l t a n
 puntlíkri	p_h Y n_0 t l i k r I
 heppnaða	h E h p n a D a
 reiknistofa	r ei h k n I s t O v a
@@ -105,14 +99,11 @@ rembdumst	r E m t Y m s t
 héraðsdómarinn	C E: r a D s t ou m a r I n
 fræsaðir	f r ai: s a D I r
 þurfti	T Y r_0 t I
-teflda	t_h E l t a
 horfðum	h O r D Y m
 fengnu	f ei N n Y
 límds	l i m t s
 flokka	f l O h k a
 jarðskjálftar	j a r D s c au l_0 t a r
-verkstæði	v E r_0 k s t ai D I
-þorskstofninn	T O r_0 s k s t O p n I n
 loftskip	l O f t s c I p
 kvenfólkinu	k_h v E n f ou l_0 c I n Y
 vistfengds	v I s t f ei N t s
@@ -140,14 +131,12 @@ spilltur	s p I l_0 t Y r
 dálk	t au l_0 k
 verklegum	v E r_0 k l E G Y m
 vinnumarkaðinn	v I n Y m a r_0 k a D I n
-tilgangslausa	t_h I l k au N s t l 9i s a
 eftirrétt	E f t I r j E h t
 skemmra	s c E m r a
 skynsemishyggju	s c I n s E m I s h I c Y
 fylgdist	f I l t I s t
 aldamótunum	a l t a m ou t Y n Y m
 þekktist	T E x t I s t
-landsliðshópurinn	l a n t s t l I D s h ou p Y r I n
 lykilinn	l I: c I l I n
 friðargæslustarfsins	f r I: D a r c ai s t l Y s t a r f s I n s
 þyrftu	T I r_0 t Y
@@ -247,7 +236,6 @@ landsbankinn	l a n t s p au J_0 c I n
 þembt	T E m_0 t
 vagnstöðvar	v a k n_0 s t 9 D v a r
 plati	p_h l a: t I
-stórefld	s t ou: r E l t
 stefnt	s t E m_0 t
 horfðist	h O r D I s t
 tryggt	t_h r I x t
@@ -256,11 +244,8 @@ fjölmargt	f j 9 l m a r_0 t
 verksmiðjunum	v E r_0 k s m I D j Y n Y m
 þörfnuðust	T 9 r t n Y D Y s t
 bigga	p I k a
-efld	E l t
-rakefldi	r a: c E l t I
 konunnar	k_h O: n Y n a r
 birgðastöð	p I r D a s t 9 D
-brúnni	p r u n I
 tilfellis	t_h I l f E t l I s
 kvalirnar	k_h v a: l I r t n a r
 eldavélarhelluna	E l t a v j E l a r h E t l Y n a
@@ -348,7 +333,6 @@ uppgötvanir	Y h p k 9 t v a n I r
 neinn	n ei t n_0
 þröngt	T r 9i N_0 t
 fylgt	f I l_0 t
-grafískur	k r a: f i s k Y r
 heildarslátrun	h ei l t a r_0 s t l au t r Y n
 samþykktur	s a m T I x t Y r
 skemmdar	s c E m t a r
@@ -419,7 +403,6 @@ pottinn	p_h O h t I n
 seðlabankinn	s E D l a p au J_0 c I n
 vesturbergs	v E s t Y r p E r k s
 lembdasta	l E m t a s t a
-bókfært	p ou k f ai r_0 t
 spilasalur	s p I: l a s a l Y r
 rafmagnshellum	r a v m a k n_0 s h E t l Y m
 stirðnuð	s t I r t n Y D
