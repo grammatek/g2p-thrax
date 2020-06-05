@@ -1,7 +1,7 @@
 # Thrax g2p
 
 This project provides a grapheme-to-phoneme (g2p) tool based on Thrax-compiled g2p grammars. The grammar provided with
-this project is for Icelandic g2p, following the transcription rules in Icelandic_pronunciation_rules.pdf.
+this project is for Icelandic g2p, following these  [transcription rules](Pronunciation_SAMPA.pdf) for X-SAMPA.
 The file also gives an overview of the Icelandic sound system and pronunciation variants.
 
 The tool is used as a command-line tool and word inputs can be provided either as a command line option, interactively
