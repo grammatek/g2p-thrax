@@ -1,0 +1,18 @@
+# action name
+name: 'thrax g2p'
+
+# action author
+author: 'Daniel Schnell <dschnell@grammatek.com>'
+
+# action description
+description: 'Generates the Thrax G2P tool.'
+
+# action runner (alpine:latest image)
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+
+branding:
+  icon: 'award'
+  color: 'green'
+
