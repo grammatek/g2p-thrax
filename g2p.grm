@@ -46,7 +46,7 @@ export ALIGN_GRAPHEMES = Optimize[separate_alpha @ reunite_diphthongs];
 #
 #############################################################################################################
 
-# 'x' is pronunced 'k s'
+# 'x' is pronounced 'k s'
 # Need to do this replacement already here, because vowel length differs depending on the number of following
 # consonants. If we did this at the end together with the general default replacements, we would e.g. get
 # 'lax' - 'l a: k s' instead of 'l a k s'.
@@ -232,9 +232,9 @@ export REPLACEMENTS = Optimize[K2X_FST @ EINN @ REPLACE_D @ REPLACE_F @ REPLACE_
 #
 #############################################
 
-# 'll' rules: note that words pronunced with 'l' instaed of 'tl' will need to be hard-coded in a dictionary
+# 'll' rules: note that words pronounced with 'l' instaed of 'tl' will need to be hard-coded in a dictionary
 # since the pronunciation has to do with origin of the word rather than phonetic characteristics (loan words,
-# and pet names tend to be pronunced 'l' whereas the regular pronunciation is 'tl'. Example: 'villa')
+# and pet names tend to be pronounced 'l' whereas the regular pronunciation is 'tl'. Example: 'villa')
 
 double_l_1 = CDRewrite[("+l+l".utf8 : " l".utf8), "", ("+d".utf8 | "+s".utf8), sigma_star];
 double_l_2 = CDRewrite[("+l+l+t".utf8 : " l_0 t".utf8), "", "", sigma_star];
