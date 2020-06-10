@@ -1,0 +1,12 @@
+on: [push]
+
+jobs:
+  build_job:
+    runs-on: ubuntu-latest
+    name: Builds Thrax g2p
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Build
+        uses: ./ # Uses an action in the root directory
+        run: docker run -it ./build.sh
