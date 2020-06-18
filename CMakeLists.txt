@@ -21,7 +21,7 @@ endif()
 # Split thraxg2p into a library part and the runtime part.
 # This way, we can test the library part with unit tests
 
-add_library(thraxg2plib
+add_library(thraxg2plib STATIC
         RewriteTesterUtils.cpp
         RewriteTesterUtils.h)
 
@@ -43,7 +43,8 @@ target_include_directories(thraxg2p PRIVATE
         ${THRAX_INCLUDE})
 
 target_link_libraries(thraxg2p PRIVATE
-        thraxg2plib)
+        thraxg2plib
+        dl)
 
 # Unit testing
 
