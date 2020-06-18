@@ -3,7 +3,7 @@ stages:
   - test
 
 .build:
-  image: registry.gitlab.com/sim7/thrax-based-g2p:latest
+  image: registry.gitlab.com/grammatek/sim/thrax-based-g2p:latest
 
 build:linux:
   extends: .build
