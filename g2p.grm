@@ -57,11 +57,15 @@ x_ks = CDRewrite["+x".utf8 : " k s".utf8, "", "", sigma_star];
 X_KS_FST = Optimize[x_ks];
 
 # examples: 'hugi', 'bogi' 'súginn' 'laugin'
+# (except for 'fljúgi', 'sjúgi', 'ljúgi', etc., where 'g' is omitted.)
+
 vowel_gi = ("+a+g+i".utf8 : " ai j I".utf8) | ("+æ+g+j".utf8 : " ai j".utf8) 
   | ("+e+g+i".utf8 : " ei j I".utf8) | ("+u+g+i".utf8 : " Yi j I".utf8) 
-  | ("+o+g+i".utf8 : " Oi j I".utf8) | ("+ú+g+i".utf8 : " u: j I".utf8) 
-  | ("+í+u".utf8 : " i j Y".utf8) | ("+í+a".utf8 : " i j a".utf8) | ("+au+g+i".utf8 : " 9i j I");
-vowel_gi_rule = CDRewrite[vowel_gi, "", "", sigma_star];
+  | ("+o+g+i".utf8 : " Oi j I".utf8) | ("+j+ú+g+i".utf8 : " j u: I")
+  | ("+ú+g+i".utf8 : " u: j I".utf8) | ("+í+u".utf8 : " i j Y".utf8) 
+  | ("+á+g+i".utf8 : " au: j I".utf8) | ("+ó+g+i".utf8 : " ou: j I")
+  | ("+í+a".utf8 : " i j a".utf8) | ("+au+g+i".utf8 : " 9i j I");
+vowel_gi_rule = CDRewrite[vowel_gi, common.consonant, "", sigma_star];
 export VOWEL_GI_FST = Optimize[vowel_gi_rule];
 
 #####################################
@@ -145,16 +149,22 @@ export FRONT = Optimize[fronting_kj_rule @ fronting_rule];
 #   SOFTEN
 #
 #######################################
-# examples: 'sofa', 'saga', 'sagði'
-soften_cons_1 = ("+f".utf8 : " v".utf8) | ("+g".utf8 : " G".utf8);  
+
+# examples: 'mágar', 'skógum'
+soften_cons_1 = ("+g".utf8 : "".utf8);  
 soften_cons_rule_1 = CDRewrite[soften_cons_1, 
+  (" au".utf8 | " u".utf8 | " ou".utf8) ":".utf8, common.plus common.vowel, sigma_star];
+
+# examples: 'sofa', 'saga', 'sagði'
+soften_cons_2 = ("+f".utf8 : " v".utf8) | ("+g".utf8 : " G".utf8);  
+soften_cons_rule_2 = CDRewrite[soften_cons_2, 
   (common.vowel | ":".utf8), common.plus (common.vowel | "b".utf8 | "ð".utf8 | "m".utf8 | "r".utf8), sigma_star];
 
 # examples: 'horfa' but NOT 'horfðum' -> 'hOrvDYm' but 'hOrDYm'  
-soften_cons_2 = ("+r+f".utf8 : " r v".utf8);  
-soften_cons_rule_2 = CDRewrite[soften_cons_2, 
+soften_cons_3 = ("+r+f".utf8 : " r v".utf8);  
+soften_cons_rule_3 = CDRewrite[soften_cons_3, 
   (common.vowel | ":".utf8), common.plus common.vowel, sigma_star];
-export SOFTEN = Optimize[soften_cons_rule_1 @ soften_cons_rule_2];
+export SOFTEN = Optimize[soften_cons_rule_1 @ soften_cons_rule_2 @ soften_cons_rule_3];
 
 ####### VARIATION ###################
 #
@@ -178,7 +188,7 @@ clusters_clear =
   | ("+n+n+s+k+t".utf8|"+n+s+k+t" : " n s t".utf8) | ("+p+p+t+s".utf8|"+p+t+s".utf8 : " f t s".utf8) 
   | ("+r+f+s+t".utf8 : " r_0 s t".utf8) | ("+r+k+s".utf8 : " r_0 k s".utf8) | ("+r+k+s+t".utf8 : " r_0 s t".utf8)
   | ("+r+k+t+s".utf8 : " r_0 t s".utf8) | ("+r+l+s".utf8 : " r t l s".utf8) | ("+r+m+t".utf8 : " r_0 m_0 t".utf8) 
-  | ("+r+n+d".utf8 : " r n t".utf8) | ("+r+p+s".utf8 : " r_0 p s".utf8) | ("+r+p+s+t".utf8 : " r_0 t s".utf8) 
+  | ("+r+n+d".utf8 : " r n t".utf8) | ("+r+p+s".utf8 : " r_0 p s".utf8) | ("+r+p+s+t".utf8 : " r_0 s t".utf8) 
   | ("+r+s+k+s".utf8 : " s k s".utf8) 
   | ("+r+s+k+t".utf8 : " r_0 s t".utf8) | ("+r+s+k".utf8 : " r_0 s k".utf8) | ("+r+s+t+s".utf8 : " s t s".utf8) | ("+r+s+n".utf8 : " r_0 s t n".utf8) 
   | ("+s+k+t".utf8 : " s t".utf8); 
