@@ -61,13 +61,14 @@ X_KS_FST = Optimize[x_ks];
 
 vowel_gi = ("+a+g+i".utf8 : " ai j I".utf8) | ("+æ+g+j".utf8 : " ai j".utf8) 
   | ("+e+g+i".utf8 : " ei j I".utf8) | ("+u+g+i".utf8 : " Yi j I".utf8) 
-  | ("+o+g+i".utf8 : " Oi j I".utf8) | ("+j+ú+g+i".utf8 : " j u: I")
-  | ("+ú+g+i".utf8 : " u: j I".utf8) | ("+í+u".utf8 : " i j Y".utf8) 
-  | ("+á+g+i".utf8 : " au: j I".utf8) | ("+ó+g+i".utf8 : " ou: j I")
-  | ("+í+a".utf8 : " i j a".utf8) | ("+au+g+i".utf8 : " 9i j I");
-vowel_gi_rule = CDRewrite[vowel_gi, common.consonant, "", sigma_star];
-export VOWEL_GI_FST = Optimize[vowel_gi_rule];
+  | ("+o+g+i".utf8 : " Oi j I".utf8) | ("+j+ú+g+i".utf8 : " j u I")
+  | ("+ú+g+i".utf8 : " u j I".utf8) | ("+í+u".utf8 : " i j Y".utf8) 
+  | ("+í+a".utf8 : " i j a".utf8) | ("+au+g+i".utf8 : " 9i j I".utf8) | ("+y+g+i".utf8 : " i j I".utf8);
+vowel_gi_rule_1 = CDRewrite[vowel_gi, "", "", sigma_star];
 
+# examples: 'g' pronounced ' j' in 'skóginn' but not 'ógirnilegt'
+vowel_gi_rule_2 = CDRewrite[("+á+g+i".utf8 : " au j I".utf8) | ("+ó+g+i".utf8 : " ou j I".utf8), common.consonant, "", sigma_star];
+export VOWEL_GI_FST = Optimize[vowel_gi_rule_1 @ vowel_gi_rule_2];
 
 #####################################
 #
@@ -154,7 +155,7 @@ export FRONT = Optimize[fronting_kj_rule @ fronting_rule];
 # examples: 'mágar', 'skógum'
 soften_cons_1 = ("+g".utf8 : "".utf8);  
 soften_cons_rule_1 = CDRewrite[soften_cons_1, 
-  (" au".utf8 | " u".utf8 | " ou".utf8) ":".utf8, common.plus common.vowel, sigma_star];
+  ("+á".utf8 | "+ú".utf8 | "+ó".utf8 | " au:".utf8 | " ou:".utf8 | " u:".utf8), common.plus common.vowel, sigma_star];
 
 # examples: 'sofa', 'saga', 'sagði'
 soften_cons_2 = ("+f".utf8 : " v".utf8) | ("+g".utf8 : " G".utf8);  
@@ -185,7 +186,7 @@ replace_hv_rule = CDRewrite[replace_hv, "", "", sigma_star];
 REPLACE_HV = Optimize[replace_hv_rule];
 
 clusters_clear = 
-  ("+f+l+d".utf8 : " v l t".utf8) | ("+f+n+s".utf8 : " p n_0 s".utf8) | ("+g+n+s".utf8 : " k n_0 s".utf8) 
+  ("+f+l+d".utf8 : " l t".utf8) | ("+f+n+s".utf8 : " p n_0 s".utf8) | ("+g+n+s".utf8 : " k n_0 s".utf8) 
   | ("+g+t+s".utf8 : " x t s".utf8) | ("+k+k+t+s".utf8 : " x t s".utf8) | ("+k+t+s".utf8 : " x t s".utf8)
   | ("+l+f+r".utf8 : " l v r".utf8) | ("+l+k+s".utf8 : " l_0 k s".utf8) | ("+l+p+s".utf8 : " l_0 p s".utf8) 
   | ("+m+d+s".utf8 : " m t s".utf8) | ("+m+m+d+s".utf8 : " m t s".utf8) | ("+m+p+s".utf8 : " m_0 p s".utf8)
@@ -226,7 +227,7 @@ replace_f = ("+f+l".utf8 : " p l".utf8) | ("+f+n".utf8 : " p n".utf8) | ("+r+f+l
 replace_f_rule = CDRewrite[replace_f, common.alphabet, common.plus_or_space common.vowel, sigma_star];
 REPLACE_F = Optimize[replace_f_rule];
 
-replace_g = CDRewrite[("+g".utf8 : " x".utf8), (common.vowel | ":".utf8) common.plus_or_space*, common.space* "[EOS]", sigma_star];
+replace_g = CDRewrite[("+g".utf8 : " G".utf8), (common.vowel | ":".utf8) common.plus_or_space*, common.space* "[EOS]", sigma_star];
 REPLACE_G = Optimize[replace_g];
 
 replace_p = ("+p+p+t".utf8 : "+f+t".utf8) | ("+p+t".utf8 : "+f+t".utf8);
