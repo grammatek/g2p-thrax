@@ -1,6 +1,6 @@
 import 'common.grm' as common;
 
-######## G2P-rules for standard, clear Icelandic pronunciation ################################################
+######## G2P-rules for ... ################################################
 #
 # * input string is one token
 # * input should be normalized (no digits, punctuation or other symbols, etc. are handled in this grammar)
@@ -152,8 +152,9 @@ export FRONT = Optimize[fronting_kj_rule @ fronting_rule];
 #
 #######################################
 
-# examples: 'mágar', 'skógum'
-soften_cons_1 = ("+g".utf8 : "".utf8);  
+# In casual allegro speech, 'f' and 'g' can be dropped completely after 'á/ó/ú'
+# Examples: 'rófa', 'mágur', 'bjúga'.
+soften_cons_1 = ("+f".utf8 : "".utf8) | ("+g".utf8 : "".utf8);  
 soften_cons_rule_1 = CDRewrite[soften_cons_1, 
   ("+á".utf8 | "+ú".utf8 | "+ó".utf8 | " au:".utf8 | " ou:".utf8 | " u:".utf8), common.plus common.vowel, sigma_star];
 
@@ -181,23 +182,37 @@ replace_hv = ("+h+v".utf8 : " k_h v".utf8);
 replace_hv_rule = CDRewrite[replace_hv, "", "", sigma_star];
 REPLACE_HV = Optimize[replace_hv_rule];
 
-clusters_clear = 
-  ("+f+l+d".utf8 : " l t".utf8) | ("+f+n+s".utf8 : " p n_0 s".utf8) | ("+g+n+s".utf8 : " k n_0 s".utf8) 
-  | ("+g+t+s".utf8 : " x t s".utf8) | ("+k+k+t+s".utf8 : " x t s".utf8) | ("+k+t+s".utf8 : " x t s".utf8)
-  | ("+l+f+r".utf8 : " l v r".utf8) | ("+l+k+s".utf8 : " l_0 k s".utf8) | ("+l+p+s".utf8 : " l_0 p s".utf8) 
-  | ("+m+d+s".utf8 : " m t s".utf8) | ("+m+m+d+s".utf8 : " m t s".utf8) | ("+m+p+s".utf8 : " m_0 p s".utf8)
-  | ("+n+g+d+s".utf8 : " N t s".utf8) | ("+n+g+n".utf8 : " N n".utf8) | ("+n+k+s".utf8 : " N_0 k s".utf8)
-  | ("+n+n+s+k+t".utf8|"+n+s+k+t" : " n s t".utf8) | ("+p+p+t+s".utf8|"+p+t+s".utf8 : " f t s".utf8) 
-  | ("+r+f+s+t".utf8 : " r_0 s t".utf8) | ("+r+k+s".utf8 : " r_0 k s".utf8) | ("+r+k+s+t".utf8 : " r_0 s t".utf8)
-  | ("+r+k+t+s".utf8 : " r_0 t s".utf8) | ("+r+l+s".utf8 : " r t l s".utf8) | ("+r+m+t".utf8 : " r_0 m_0 t".utf8) 
-  | ("+r+n+d".utf8 : " r n t".utf8) | ("+r+p+s".utf8 : " r_0 p s".utf8) | ("+r+p+s+t".utf8 : " r_0 s t".utf8) 
-  | ("+r+s+k+s".utf8 : " s k s".utf8) 
-  | ("+r+s+k+t".utf8 : " r_0 s t".utf8) | ("+r+s+k".utf8 : " r_0 s k".utf8) | ("+r+s+t+s".utf8 : " s t s".utf8) | ("+r+s+n".utf8 : " r_0 s t n".utf8) 
-  | ("+s+k+t".utf8 : " s t".utf8); 
-clusters_clear_rule = CDRewrite[clusters_clear, "", "", sigma_star]; 
-CLUSTERS_CLEAR = Optimize[clusters_clear_rule];
+# example: 'þorsks' in casual speech
+delete_sk = ("+r+s+k+s".utf8 : " r_0 s".utf8); 
+delete_sk_rule = CDRewrite[delete_sk, "", "", sigma_star];
+DELETE_SK = Optimize[delete_sk_rule];
 
-export VARIATION = Optimize[DELETE_K @ REPLACE_HV @ CLUSTERS_CLEAR];
+clusters_cas = 
+  ("+f+l+d".utf8 : " l t".utf8) | ("+f+n+s".utf8 : " f s".utf8) | ("+g+n+s".utf8 : " x s".utf8) | ("+f+t+s".utf8 : " f s".utf8)
+  | ("+g+t+s".utf8 : " x s".utf8) | ("+k+k+t+s".utf8 : " x s".utf8) | ("+k+t+s".utf8 : " x s".utf8)
+  | ("+l+f+r".utf8 : " l r".utf8) | ("+l+k+s".utf8 : " l s".utf8) | ("+l+p+s".utf8 : " l s".utf8)     | ("+l+d+s".utf8 : " l s".utf8) |
+ ("+l+l+d+s".utf8 : " l s".utf8) |
+("+l+f+s".utf8 : " l s".utf8)     | ("+l+s+k+s".utf8 : " l s".utf8)
+| ("+l+t+s".utf8 | "+l+l+t+s".utf8 : " l_0 s")
+  | ("+m+d+s".utf8 : " m s".utf8) | ("+m+m+d+s".utf8 : " m s".utf8) | ("+m+p+s".utf8 : " m s".utf8)
+  | ("+n+g+d+s".utf8 : " N s".utf8) | ("+n+g+n".utf8 : " n".utf8) | ("+n+k+s".utf8 : " N_0 s".utf8)  |  ("+n+d+s".utf8 : " n s".utf8)  |
+("+n+n+d+s".utf8 : " n s".utf8)  |  ("+n+s+k+s".utf8 : " n s".utf8)  |
+("+n+n+s+k+s".utf8 : " n s".utf8)
+  | ("+n+n+s+k+t".utf8|"+n+s+k+t" : " n s t".utf8) | ("+p+p+t+s".utf8|"+p+t+s".utf8 : " f s".utf8) | ("+r+f+s".utf8 : " r s".utf8)
+  | ("+r+f+s+t".utf8 : " s t".utf8) | ("+r+g+s".utf8 : " r s".utf8) |("+r+k+s".utf8 : " r_0 s".utf8) | ("+r+k+s+t".utf8 : " s t".utf8)
+  | ("+r+k+t+s".utf8 : " r_0 s".utf8) | ("+r+l+s".utf8 : " l s".utf8) | ("+r+m+d".utf8 : " m t".utf8) | ("+r+m+s".utf8 : " m s".utf8) |    ("+r+m+t".utf8 : " m_0 t".utf8) 
+  | ("+r+n+d".utf8 : " n t".utf8) | ("+r+n+s+k".utf8 : " n s k".utf8) |("+r+p+s".utf8 : " r_0 s".utf8) | ("+r+p+s+t".utf8 : " s t".utf8) 
+  | ("+r+p+t+s".utf8 : " r_0 s".utf8)
+  | ("+r+s+k+t".utf8 : " s t".utf8) | ("+r+s+k".utf8 : " s k".utf8) |
+("+r+s+t".utf8 : " s t".utf8) | ("+r+r+s+t".utf8 : " s t".utf8) |
+ ("+r+s+t+s".utf8 : " s".utf8) | ("+r+s+n".utf8 : " s t n".utf8) 
+| ("+r+t+s".utf8 : " r_0 s".utf8) | ("+r+r+t+s".utf8 : " r_0 s".utf8)
+| ("+s+k+s".utf8 : " s".utf8) | ("+s+p+s".utf8 : " s".utf8)
+  | ("+s+k+t".utf8 : " s t".utf8) | ("+s+t+s".utf8 : " s".utf8); 
+clusters_cas_rule = CDRewrite[clusters_cas, "", "", sigma_star]; 
+CLUSTERS_CAS = Optimize[clusters_cas_rule];
+
+export VARIATION = Optimize[DELETE_SK @ DELETE_K @ REPLACE_HV @ CLUSTERS_CAS];
 
 ###### VARIOUS REPLACEMENTS AND DELETIONS #######################################################################
 #
@@ -230,8 +245,8 @@ replace_p = ("+p+p+t".utf8 : "+f+t".utf8) | ("+p+t".utf8 : "+f+t".utf8);
 replace_p_rule = CDRewrite[replace_p, "", "", sigma_star];
 REPLACE_P = Optimize[replace_p_rule];
 
-#ng reuduction - kringla, englar, tungna, skyggndist
-ng_reduction = ("+n+g+l".utf8 : " N l".utf8) | ("+n+g+n".utf8 : " N n".utf8) | (" N k s".utf8 : " N s".utf8) | ("+g+g+n+d".utf8 : " N t");
+#ng reduction - kringla, englar, tungna, skyggndist
+ng_reduction = ("+n+g+l".utf8 : " N l".utf8) | ("+n+g+n".utf8 : " n".utf8) | (" N k s".utf8 : " N s".utf8) | ("+g+g+n+d".utf8 : " N t");
 ngl_rule = CDRewrite[ng_reduction, "", "", sigma_star];
 NGL = Optimize[ngl_rule];
 
@@ -272,7 +287,7 @@ export SIMPLIFY = Optimize[DOUBLE_L @ SIMPLIFY_DOUBLE];
 #############################################
 
 # necessary transitions before devoicing
-rn = CDRewrite[("+r+n".utf8 : " r t n".utf8), "", "", sigma_star];
+rn = CDRewrite[("+r+n".utf8 : " t n".utf8), "", "", sigma_star];
 RN = Optimize[rn]; 
 
 # example: 'hjóla' 'hnútur' 'hrjúfur'
@@ -326,7 +341,7 @@ default_clusters = ("+ð+k".utf8 : " T k".utf8) | ("+f+l+t".utf8 : " l_0 t".utf8
   | ("+n+t".utf8 : " n_0 t".utf8) | ("+ey".utf8 : " ei".utf8)  | ("+r+f+ð".utf8 : " r D".utf8) 
   | ("+r+k+t".utf8 : " r_0 t".utf8) | ("+r+l".utf8 : " r t l".utf8) 
   | ("+r+g+ð".utf8 : " r D".utf8) | ("+r+g+n".utf8 : " r t n".utf8) | ("+r+g+t".utf8 : " r_0 t".utf8) 
-  | ("+r+s+l".utf8 common.plus_or_space : " r_0 s t l ".utf8) | ("s+t+k".utf8 : "s k".utf8)
+  | ("+r+s+l".utf8 common.plus_or_space : " s t l ".utf8) | ("s+t+k".utf8 : "s k".utf8)
   | (common.plus_or_space "s+l".utf8 common.plus_or_space : " s t l+".utf8) | ("s+n".utf8 : "s t n".utf8) | ("+t+n+s".utf8 : " s".utf8)
   | (" h t n_0+s".utf8 : " s".utf8)
   | ("+æ+t+l".utf8 : " ai h t l".utf8) | ("+r+k".utf8 : " r_0 k".utf8) | ("+r+s".utf8 : " r_0 s".utf8) 

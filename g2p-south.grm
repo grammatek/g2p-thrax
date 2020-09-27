@@ -1,6 +1,6 @@
 import 'common.grm' as common;
 
-######## G2P-rules for standard, clear Icelandic pronunciation ################################################
+######## G2P-rules for clear Icelandic pronunciation in the minority Southern variant ("hv"-pronunciation) ############################################
 #
 # * input string is one token
 # * input should be normalized (no digits, punctuation or other symbols, etc. are handled in this grammar)
@@ -177,7 +177,11 @@ export SOFTEN = Optimize[soften_cons_rule_1 @ soften_cons_rule_2 @ soften_cons_r
 delete_k = CDRewrite[("+k+n+t".utf8 : " n_0 t".utf8), "", "", sigma_star];
 DELETE_K = Optimize[delete_k];
 
-replace_hv = ("+h+v".utf8 : " k_h v".utf8);
+# Words beginning in written hv- (most of them question words like hver ‘who’, hvenær ‘when’, etc.) have [k_hv] in standard pronunciation. 
+# However, [x] is used instead in these words in a minority variant spoken in Southern Iceland.
+# examples: 'hver', 'hvenær' -> 'xE:r', 'xE:nair'
+
+replace_hv = ("+h+v".utf8 : " x".utf8);
 replace_hv_rule = CDRewrite[replace_hv, "", "", sigma_star];
 REPLACE_HV = Optimize[replace_hv_rule];
 

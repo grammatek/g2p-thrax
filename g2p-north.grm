@@ -1,6 +1,6 @@
 import 'common.grm' as common;
 
-######## G2P-rules for standard, clear Icelandic pronunciation ################################################
+######## G2P-rules for clear Icelandic pronunciation with the minority Northern variant ('harðmæli') ###########################
 #
 # * input string is one token
 # * input should be normalized (no digits, punctuation or other symbols, etc. are handled in this grammar)
@@ -119,7 +119,8 @@ export LONG_VOWELS = Optimize[long_vowels];
 
 post_aspir = ("+k" : " k_h") | ("+p" : " p_h") | ("+t" : " t_h");
 post_aspir_rule = CDRewrite[post_aspir, "[BOS]", common.plus_or_space (common.vowel | common.liquid | common.lateral), sigma_star];
-insert_post_aspir = Optimize[post_aspir_rule];
+north_aspir_rule = CDRewrite[post_aspir, (common.vowel | ":".utf8), "[EOS]" | common.plus_or_space (common.vowel | common.liquid), sigma_star];
+insert_post_aspir = Optimize[post_aspir_rule @ north_aspir_rule];
 
 pre_aspir = ("+k+k".utf8 : " h k".utf8) | ("+p+p".utf8 : " h p".utf8) | ("+t+t".utf8 : " h t".utf8)
 | ("+p+l".utf8 : " h p l".utf8) | ("+p+n".utf8 : " h p n".utf8) | ("+t+l".utf8 : " h t l".utf8)
