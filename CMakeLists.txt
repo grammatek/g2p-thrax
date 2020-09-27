@@ -5,14 +5,36 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(default_build_type "Release")
 
+# find dependencies for compilation
 find_library(OPENFST NAMES fst)
 find_library(THRAX NAMES libthrax.a)
+find_program(THRAXCOMPILER NAMES thraxcompiler)
 
 find_path(FST_INCLUDE fst)
 find_path(THRAX_INCLUDE thrax)
 
 find_package(Boost REQUIRED
         COMPONENTS locale filesystem)
+
+# add custom rule for compiling fst archive file
+set(GRAMMAR ${CMAKE_SOURCE_DIR}/g2p.grm)
+set(GRAMMAR_ARCHIVE  ${CMAKE_SOURCE_DIR}/g2p.far)
+
+add_custom_command(OUTPUT ${GRAMMAR_ARCHIVE}
+        PRE_BUILD
+        COMMAND ${THRAXCOMPILER} --input_grammar=${GRAMMAR} --output_far=${GRAMMAR_ARCHIVE}
+        DEPENDS ${GRAMMAR}
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+        COMMENT "Compiling grammar ${GRAMMAR} => ${GRAMMAR_ARCHIVE}"
+        VERBATIM
+        )
+add_custom_target(g2p_compile DEPENDS ${GRAMMAR_ARCHIVE})
+
+# General compilation options
+add_compile_options(
+        "-Wall" "-W" "-Wpedantic" "-Wextra" "-fexceptions" "-Wno-unused-parameter" "-Wno-sign-compare" "-Wno-extra-semi"
+        "$<$<CONFIG:DEBUG>:-O0;-g3;-ggdb>"
+)
 
 if(CMAKE_PROJECT_NAME STREQUAL thrax_g2p)
     include(CTest)
@@ -45,20 +67,7 @@ target_include_directories(thraxg2p PRIVATE
 target_link_libraries(thraxg2p PRIVATE
         thraxg2plib
         dl)
-
-# Unit testing
-
-# CppUTest, fetch it externally, so we don't need it to be part of the git repository
-include(FetchContent)
-FetchContent_Declare(
-        CppUTest
-        GIT_REPOSITORY https://github.com/cpputest/cpputest.git
-        GIT_TAG        latest-passing-build
-)
-
-# Set this to ON if you want to have the CppUTests in your project as well.
-set(TESTS OFF CACHE BOOL "Switch off CppUTest Test build")
-FetchContent_MakeAvailable(CppUTest)
+add_dependencies(thraxg2p g2p_compile)
 
 if(CMAKE_PROJECT_NAME STREQUAL thrax_g2p AND BUILD_TESTING)
     add_subdirectory(tests)
