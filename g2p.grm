@@ -119,7 +119,7 @@ export LONG_VOWELS = Optimize[long_vowels];
 
 post_aspir = ("+k" : " k_h") | ("+p" : " p_h") | ("+t" : " t_h");
 post_aspir_rule = CDRewrite[post_aspir, "[BOS]", common.plus_or_space (common.vowel | common.liquid | common.lateral), sigma_star];
-insert_post_aspir = Optimize[post_aspir_rule];
+export insert_post_aspir = Optimize[post_aspir_rule];
 
 pre_aspir = ("+k+k".utf8 : " h k".utf8) | ("+p+p".utf8 : " h p".utf8) | ("+t+t".utf8 : " h t".utf8)
 | ("+p+l".utf8 : " h p l".utf8) | ("+p+n".utf8 : " h p n".utf8) | ("+t+l".utf8 : " h t l".utf8)
@@ -129,7 +129,7 @@ gt_pre_aspir = CDRewrite[("+á+g+t".utf8 : " au h t".utf8), "", "", sigma_star];
 # need to devoice 'r' before 'k' at this place, in case fronting becomes necessary (in which case we loose distinction between 'k' and 'g')
 rk_pre_aspir = (("+r+k+t".utf8 : " r_0 t".utf8) | ("+r+k".utf8 : " r_0+k".utf8));
 rk_pre_aspir_rule = CDRewrite[rk_pre_aspir, "", "", sigma_star];
-insert_pre_aspir = Optimize[pre_aspir_rule @ gt_pre_aspir @ rk_pre_aspir_rule];
+export insert_pre_aspir = Optimize[pre_aspir_rule @ gt_pre_aspir @ rk_pre_aspir_rule];
 
 export ASPIRATION = Optimize[insert_post_aspir @ insert_pre_aspir];
 
@@ -175,7 +175,7 @@ export SOFTEN = Optimize[soften_cons_rule_1 @ soften_cons_rule_2 @ soften_cons_r
 #####################################
 
 delete_k = CDRewrite[("+k+n+t".utf8 : " n_0 t".utf8), "", "", sigma_star];
-DELETE_K = Optimize[delete_k];
+export DELETE_K = Optimize[delete_k];
 
 replace_hv = ("+h+v".utf8 : " k_h v".utf8);
 replace_hv_rule = CDRewrite[replace_hv, "", "", sigma_star];
@@ -310,29 +310,27 @@ default_clusters_1 = ("r+n+s".utf8 : "r_0 s".utf8) | ("+r+n+t".utf8 : " n_0 t".u
 default_clusters_1_rule = CDRewrite[default_clusters_1, "", "", sigma_star];
 export BASIC_G2P_CLUSTERS_1 = Optimize[default_clusters_1_rule];
 
-default_clusters = ("+ð+k".utf8 : " T k".utf8) | ("+f+l+t".utf8 : " l_0 t".utf8) | ("+f+n+d".utf8 : " m t") 
-  | ("+f+n+t".utf8 : " m_0 t".utf8) | (" k+l+d".utf8 : " l t".utf8) | ("+g+l+d".utf8 : " l t".utf8) 
-  | ("+g+g+t".utf8 : " x t".utf8)
-  | ("+g+l+t".utf8 : " l_0 t") | ("+g+n+d".utf8 : " N t".utf8) | ("+g+g+n+s+t".utf8 : " N_0 s t".utf8) 
-  | ("+l+t".utf8 : " l_0 t".utf8) 
-  | ("+l+k+t".utf8 : " l_0 t".utf8) | ("+l+f+d".utf8 : " l t".utf8) | ("+l+f+t".utf8 : " l_0 t".utf8)
+northeast_clusters = ("+ð+k".utf8 : " T k".utf8) | ("+f+l+t".utf8 : " l_0 t".utf8) | ("+f+n+t".utf8 : " m_h t".utf8)
+  | ("+l+k".utf8 : " l_0 k".utf8) | ("+l c".utf8 : " l_0 c".utf8) | ("+l+p".utf8 : " l_0 p".utf8) | ("+m+p".utf8 : " m_0 p".utf8) 
+  | ("+n+g+t".utf8 : " N_0 t".utf8) | ("+m+k".utf8 : " m_0 k".utf8) | (("m+t".utf8 | "m+b+t".utf8) : "m_0 t".utf8)
+  | ("+n+k".utf8 : " n_h k".utf8) | ("+n+t".utf8 : " n_h t".utf8);
+
+default_clusters =  ("+f+n+d".utf8 : " m t") | (" k+l+d".utf8 : " l t".utf8) | ("+g+l+d".utf8 : " l t".utf8) 
+  | ("+g+g+t".utf8 : " x t".utf8) | ("+g+l+t".utf8 : " l_0 t") | ("+g+n+d".utf8 : " N t".utf8) | ("+g+g+n+s+t".utf8 : " N_0 s t".utf8) 
+  | ("+l+t".utf8 : " l_0 t".utf8) | ("+l+k+t".utf8 : " l_0 t".utf8) | ("+l+f+d".utf8 : " l t".utf8) | ("+l+f+t".utf8 : " l_0 t".utf8)
   | ("+l+g+d".utf8 : " l t".utf8) | ("+l+g+t".utf8 : " l_0 t".utf8) | ("+l+g+n".utf8 : " l n".utf8)
-  | ("+l+k".utf8 : " l_0 k".utf8) | ("+l c".utf8 : " l_0 c".utf8) | ("+l+p".utf8 : " l_0 p".utf8)
-  | (common.plus_or_space "l+t".utf8 : " l_0 t".utf8) 
-  | ("+m+b+d".utf8 : " m t".utf8) | ("+m+b+s".utf8 : " m s".utf8) | ("+m+p".utf8 : " m_0 p".utf8) 
-  | ("+m+k".utf8 : " m_0 k".utf8) | (("m+t".utf8 | "m+b+t".utf8) : "m_0 t".utf8) | ("+n+g+d".utf8 : " N t".utf8)
-  | ("+n+g+t".utf8 : " N_0 t".utf8) | ("+n+k+t".utf8 : " n_0 t".utf8)
-  | ("+n+k".utf8 : " n_0 k".utf8) | ("+r+f+t".utf8 : " r_0 t".utf8) | ("+r+p+t".utf8 : " r_0 t".utf8)
-  | ("+n+t".utf8 : " n_0 t".utf8) | ("+ey".utf8 : " ei".utf8)  | ("+r+f+ð".utf8 : " r D".utf8) 
-  | ("+r+k+t".utf8 : " r_0 t".utf8) | ("+r+l".utf8 : " r t l".utf8) 
+  | (common.plus_or_space "l+t".utf8 : " l_0 t".utf8) | ("+m+b+d".utf8 : " m t".utf8) | ("+m+b+s".utf8 : " m s".utf8) 
+  | ("+n+g+d".utf8 : " N t".utf8) | ("+n+k+t".utf8 : " n_0 t".utf8) | ("+r+f+t".utf8 : " r_0 t".utf8) | ("+r+p+t".utf8 : " r_0 t".utf8)
+  | ("+ey".utf8 : " ei".utf8)  | ("+r+f+ð".utf8 : " r D".utf8) | ("+r+k+t".utf8 : " r_0 t".utf8) | ("+r+l".utf8 : " r t l".utf8) 
   | ("+r+g+ð".utf8 : " r D".utf8) | ("+r+g+n".utf8 : " r t n".utf8) | ("+r+g+t".utf8 : " r_0 t".utf8) 
   | ("+r+s+l".utf8 common.plus_or_space : " r_0 s t l ".utf8) | ("s+t+k".utf8 : "s k".utf8)
   | (common.plus_or_space "s+l".utf8 common.plus_or_space : " s t l+".utf8) | ("s+n".utf8 : "s t n".utf8) | ("+t+n+s".utf8 : " s".utf8)
-  | (" h t n_0+s".utf8 : " s".utf8)
-  | ("+æ+t+l".utf8 : " ai h t l".utf8) | ("+r+k".utf8 : " r_0 k".utf8) | ("+r+s".utf8 : " r_0 s".utf8) 
+  | (" h t n_0+s".utf8 : " s".utf8) | ("+æ+t+l".utf8 : " ai h t l".utf8) | ("+r+k".utf8 : " r_0 k".utf8) | ("+r+s".utf8 : " r_0 s".utf8) 
   | ("+r+t".utf8 : " r_0 t".utf8) | ("+r+p".utf8 : " r_0 p".utf8) | ("+r+ð+n".utf8 : " r t n".utf8);
+
 default_clusters_rule = CDRewrite[default_clusters, "", "", sigma_star]; 
-export BASIC_G2P_CLUSTERS = Optimize[default_clusters_rule];
+northeast_clusters_rule = CDRewrite[northeast_clusters, "", "", sigma_star];
+export BASIC_G2P_CLUSTERS = Optimize[northeast_clusters_rule @ default_clusters_rule];
 
 default_g2p = 
    ("+b".utf8 : " p".utf8)
@@ -362,8 +360,14 @@ delete_plus_symbol = CDRewrite["+".utf8 : " ", "", "", sigma_star];
 DELETE_PLUS = Optimize[delete_plus_symbol];
 
 export STEP_1 = Optimize[ALIGN_GRAPHEMES];
-export STEP_2 = Optimize[X_KS_FST @ VOWEL_GI_FST @ NG_NK @ LONG_VOWELS @ VARIATION @ REPLACEMENTS @ ASPIRATION @ FRONT @ SOFTEN];
-export STEP_3 = Optimize[SIMPLIFY @ DEVOICING];
-export STEP_4 = Optimize[BASIC_REPLACEMENTS @ BASIC_G2P_CLUSTERS_1 @ BASIC_G2P_CLUSTERS @ BASIC_G2P @ DELETE_PLUS];
+export STEP_2 = Optimize[X_KS_FST @ VOWEL_GI_FST @ NG_NK @ LONG_VOWELS];
+export STEP_3 = Optimize[VARIATION];
+export STEP_4 = Optimize[REPLACEMENTS];
+export STEP_5 = Optimize[ASPIRATION];
+export STEP_6 = Optimize[FRONT @ SOFTEN];
+export STEP_7 = Optimize[SIMPLIFY @ DEVOICING];
+export STEP_8 = Optimize[BASIC_REPLACEMENTS @ BASIC_G2P_CLUSTERS_1];
+export STEP_9 = Optimize[BASIC_G2P_CLUSTERS];
+export STEP_10 = Optimize[BASIC_G2P @ DELETE_PLUS];
 
-export G2P = Optimize[STEP_1 @ STEP_2 @ STEP_3 @ STEP_4];
+export G2P = Optimize[STEP_1 @ STEP_2 @ STEP_3 @ STEP_4 @ STEP_5 @ STEP_6 @ STEP_7 @ STEP_8 @ STEP_9 @ STEP_10];
