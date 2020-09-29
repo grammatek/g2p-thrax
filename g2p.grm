@@ -312,10 +312,10 @@ default_clusters_1 = ("r+n+s".utf8 : "r_0 s".utf8) | ("+r+n+t".utf8 : " n_0 t".u
 default_clusters_1_rule = CDRewrite[default_clusters_1, "", "", sigma_star];
 export BASIC_G2P_CLUSTERS_1 = Optimize[default_clusters_1_rule];
 
-northeast_clusters = ("+ð+k".utf8 : " T k".utf8) | ("+f+l+t".utf8 : " l_0 t".utf8) | ("+f+n+t".utf8 : " m_h t".utf8)
+northeast_clusters = ("+ð+k".utf8 : " T k".utf8) | ("+f+l+t".utf8 : " l_0 t".utf8) | ("+f+n+t".utf8 : " m_0 t".utf8)
   | ("+l+k".utf8 : " l_0 k".utf8) | ("+l c".utf8 : " l_0 c".utf8) | ("+l+p".utf8 : " l_0 p".utf8) | ("+m+p".utf8 : " m_0 p".utf8) 
   | ("+n+g+t".utf8 : " N_0 t".utf8) | ("+m+k".utf8 : " m_0 k".utf8) | (("m+t".utf8 | "m+b+t".utf8) : "m_0 t".utf8)
-  | ("+n+k".utf8 : " n_h k".utf8) | ("+n+t".utf8 : " n_h t".utf8);
+  | ("+n+k".utf8 : " n_0 k".utf8) | ("+n+t".utf8 : " n_0 t".utf8);
 
 default_clusters =  ("+f+n+d".utf8 : " m t") | (" k+l+d".utf8 : " l t".utf8) | ("+g+l+d".utf8 : " l t".utf8) 
   | ("+g+g+t".utf8 : " x t".utf8) | ("+g+l+t".utf8 : " l_0 t") | ("+g+n+d".utf8 : " N t".utf8) | ("+g+g+n+s+t".utf8 : " N_0 s t".utf8) 
