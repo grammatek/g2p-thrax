@@ -117,8 +117,8 @@ export LONG_VOWELS = Optimize[long_vowels];
 #
 ########################################
 
-post_aspir = ("+k" : " k_h") | ("+p" : " p_h") | ("+t" : " t_h");
-post_aspir_rule = CDRewrite[post_aspir, "[BOS]", common.plus_or_space (common.vowel | common.liquid | common.lateral), sigma_star];
+export post_aspir = ("+k" : " k_h") | ("+p" : " p_h") | ("+t" : " t_h");
+export post_aspir_rule = CDRewrite[post_aspir, "[BOS]", common.plus_or_space (common.vowel | common.liquid | common.lateral), sigma_star];
 export insert_post_aspir = Optimize[post_aspir_rule];
 
 pre_aspir = ("+k+k".utf8 : " h k".utf8) | ("+p+p".utf8 : " h p".utf8) | ("+t+t".utf8 : " h t".utf8)
@@ -140,7 +140,7 @@ export ASPIRATION = Optimize[insert_post_aspir @ insert_pre_aspir];
 #######################################
 
 # example: 'kíkja' 'eggi'
-fronting_kj = ("+g+g+j".utf8 : " c".utf8) | ("+g+j".utf8 : " c".utf8) | ("+k+j".utf8 : " c".utf8) | (" k_h j".utf8 : "c_h".utf8);
+fronting_kj = ("+g+g+j".utf8 : " c".utf8) | ("+g+j".utf8 : " c".utf8) | ("+k+j".utf8 : " c".utf8) | (" k_h j".utf8 : " c_h".utf8) | (" k_h+j".utf8 : " c_h".utf8);
 fronting_kj_rule = CDRewrite[fronting_kj, "", "", sigma_star];
 fronting = ("+s+t+k".utf8 : " s c") | (common.plus_or_space "k".utf8 : " c".utf8) | (" k_h".utf8 : " c_h".utf8) | ("+g+g".utf8 : " c".utf8) | ("+g".utf8 : " c".utf8);
 fronting_rule = CDRewrite[fronting, "", common.plus_or_space common.front_vowel, sigma_star];

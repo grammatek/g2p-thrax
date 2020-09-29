@@ -1,4 +1,5 @@
 import 'common.grm' as common;
+import 'g2p.grm' as g2p;
 
 ######## G2P-rules for clear Icelandic pronunciation with the minority Northern variant ('harðmæli') ###########################
 #
@@ -30,7 +31,7 @@ sigma_star = common.whole_alphabet*;
 ########################################
 
 north_aspir_rule = CDRewrite[g2p.post_aspir, (common.vowel | ":".utf8), "[EOS]" | common.plus_or_space (common.vowel | common.liquid), sigma_star];
-insert_post_aspir = Optimize[g2p.post_aspir_rule @ north_aspir_rule];
+insert_post_aspir = Optimize[north_aspir_rule @ g2p.post_aspir_rule];
 
 export ASPIRATION = Optimize[insert_post_aspir @ g2p.insert_pre_aspir];
 
