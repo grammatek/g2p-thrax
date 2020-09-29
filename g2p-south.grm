@@ -1,6 +1,8 @@
 import 'common.grm' as common;
+import 'g2p.grm' as g2p;
+import 'g2p-clear.grm' as clear;
 
-######## G2P-rules for clear Icelandic pronunciation in the minority Southern variant ("hv"-pronunciation) ############################################
+######## G2P-rules for clear Icelandic pronunciation in the Southern variant ("hv"-pronunciation) ########
 #
 # * input string is one token
 # * input should be normalized (no digits, punctuation or other symbols, etc. are handled in this grammar)
@@ -14,159 +16,14 @@ import 'common.grm' as common;
 #
 # To compile and test this grammar from the command line:
 #
-# $thraxmakedep g2p.grm
+# $thraxmakedep g2p-south.grm
 # $make
-# $thraxrewrite-tester --far=g2p.far --rules=G2P --input_mode=utf8 --output_mode=utf8
+# $thraxrewrite-tester --far=g2p-south.far --rules=G2P --input_mode=utf8 --output_mode=utf8
 #
 #############################################################################################################
 
 # all possible input and output symbols
 sigma_star = common.whole_alphabet*;
-
-#### PREPARE INPUT ##########################################################################################
-#
-# We need to take into account that input and output symbol tables overlap, and thus, without some preprocessing,
-# output of earlier stages could be handled as input symbols at later stages. We prevent this by adding a '+'
-# in front of each input symbol.
-#
-# Insert a '+' before each character, and then join diphthongs (au, ei, ey):
-# 'hlaupa' becomes '+h+l+au+p+a'
-#
-#############################################################################################################
-
-separate_alpha = CDRewrite["".utf8 : "+".utf8, "".utf8, common.alphabet, sigma_star];
-reunite_diphthongs_1 = CDRewrite["+".utf8 : "".utf8, "e".utf8, "i".utf8 | "y".utf8, sigma_star];
-reunite_diphthongs_2 = CDRewrite["+".utf8 : "".utf8, "a".utf8, "u".utf8, sigma_star];
-
-reunite_diphthongs = Optimize[reunite_diphthongs_1 @ reunite_diphthongs_2];
-
-export ALIGN_GRAPHEMES = Optimize[separate_alpha @ reunite_diphthongs];
-
-#### G2P-RULES ##############################################################################################
-#
-#############################################################################################################
-
-# 'x' is pronounced 'k s'
-# Need to do this replacement already here, because vowel length differs depending on the number of following
-# consonants. If we did this at the end together with the general default replacements, we would e.g. get
-# 'lax' - 'l a: k s' instead of 'l a k s'.
-# TODO check words like 'laks', 'baks' etc. (genetive from 'lak', 'bak') - we do have a long 'a' there. Is there a
-# final list for words having 'ks' in the stem (like lax and baks (from baksa))?
-
-x_ks = CDRewrite["+x".utf8 : " k s".utf8, "", "", sigma_star];
-X_KS_FST = Optimize[x_ks];
-
-# examples: 'hugi', 'bogi' 'súginn' 'laugin'
-# (except for 'fljúgi', 'sjúgi', 'ljúgi', etc., where 'g' is omitted.)
-
-vowel_gi = ("+a+g+i".utf8 : " ai j I".utf8) | ("+æ+g+j".utf8 : " ai j".utf8) 
-  | ("+e+g+i".utf8 : " ei j I".utf8) | ("+u+g+i".utf8 : " Yi j I".utf8) 
-  | ("+o+g+i".utf8 : " Oi j I".utf8) | ("+j+ú+g+i".utf8 : " j u I")
-  | ("+ú+g+i".utf8 : " u j I".utf8) | ("+í+u".utf8 : " i j Y".utf8) 
-  | ("+í+a".utf8 : " i j a".utf8) | ("+au+g+i".utf8 : " 9i j I".utf8) | ("+y+g+i".utf8 : " i j I".utf8);
-vowel_gi_rule_1 = CDRewrite[vowel_gi, "", "", sigma_star];
-
-# examples: 'g' pronounced ' j' in 'skóginn' but not 'ógirnilegt'
-vowel_gi_rule_2 = CDRewrite[("+á+g+i".utf8 : " au j I".utf8) | ("+ó+g+i".utf8 : " ou j I".utf8), common.consonant, "", sigma_star];
-export VOWEL_GI_FST = Optimize[vowel_gi_rule_1 @ vowel_gi_rule_2];
-
-#####################################
-#
-#  NG-NK
-#
-#####################################
-# in standard pronunciation a, e, i, o, u and ö become 'au' 'ei' 'i' 'ou' 'u' and '9i' before ng and nk
-# keep 'ei' as input as well to deal with words like 'einkunn'
-
-diphthongize = ("+a".utf8 : " au".utf8) | ("+e".utf8 : " ei".utf8) 
-  | ("+ei".utf8 : " ei".utf8) | ("+i".utf8 : " i".utf8) | ("+y".utf8 : " i".utf8)
-  | ("+o".utf8 : " ou".utf8) | ("+u".utf8 : " u".utf8) | ("+ö".utf8 : " 9i".utf8);
-ng_nk_rule = CDRewrite[diphthongize, "", "+n+g" | "+n+k", sigma_star];
-ng_nk_fst = Optimize[ng_nk_rule];
-
-# in standard pronunciation 'ng' becomes 'Jc' and 'nk' becomes 'J_0c' in a front-vowel environment
-nasal_clusters_front = ("+n+g".utf8: " J c".utf8) | ("+n+k".utf8 : " J_0 c");
-nasal_clusters_front_rule = CDRewrite[nasal_clusters_front, "", common.plus common.front_vowel, sigma_star];
-nasals_fronting = Optimize[nasal_clusters_front_rule];
-
-# in standard pronunciation 'ng' becomes 'Nk' and 'nk' becomes 'N_0k' in a back-vowel environment
-nasal_clusters_back = ("+n+g".utf8 : " N k".utf8) | ("+n+k".utf8 : " N_0 k".utf8);
-nasal_clusters_back_rule = CDRewrite[nasal_clusters_back, "", common.plus_or_space* (common.back_vowel | common.liquid | "[EOS]"), sigma_star];
-nasals_back = Optimize[nasal_clusters_back_rule];
-
-export NG_NK = Optimize[ng_nk_fst @ nasals_fronting @ nasals_back];
-
-#########################################
-#
-#  LONG VOWELS
-#
-#########################################
-
-# vowels are long in a first syllable before one consonant, one consonant+liquid or before end-of-string
-# examples: 'aka' - 'a: k a', 'kú' - 'k u:', 'í - 'i:' 'tekja' - 't_h E: c a'
-
-long_vowels = CDRewrite[
-  common.long_vowels_map, 
-  "[BOS]" common.space* (common.plus common.consonant)*, 
-  "[EOS]" | (common.plus_or_space common.consonant (common.plus_or_space common.vowel | "[EOS]")) | (common.plus common.plosive common.plus common.liquid) | (common.plus common.vowel), sigma_star];
-export LONG_VOWELS = Optimize[long_vowels];
-
-########################################
-#
-#  ASPIRATION
-#
-########################################
-
-post_aspir = ("+k" : " k_h") | ("+p" : " p_h") | ("+t" : " t_h");
-post_aspir_rule = CDRewrite[post_aspir, "[BOS]", common.plus_or_space (common.vowel | common.liquid | common.lateral), sigma_star];
-insert_post_aspir = Optimize[post_aspir_rule];
-
-pre_aspir = ("+k+k".utf8 : " h k".utf8) | ("+p+p".utf8 : " h p".utf8) | ("+t+t".utf8 : " h t".utf8)
-| ("+p+l".utf8 : " h p l".utf8) | ("+p+n".utf8 : " h p n".utf8) | ("+t+l".utf8 : " h t l".utf8)
-  | ("+t+m".utf8 : "+h+t+m".utf8) | ("+t+n".utf8 common.plus_or_space : " h t n+".utf8) | ("+k+l".utf8 : " h k l".utf8) | ("+k+n".utf8 : " h k n".utf8);
-pre_aspir_rule = CDRewrite[pre_aspir, common.vowel, "", sigma_star];
-gt_pre_aspir = CDRewrite[("+á+g+t".utf8 : " au h t".utf8), "", "", sigma_star];
-# need to devoice 'r' before 'k' at this place, in case fronting becomes necessary (in which case we loose distinction between 'k' and 'g')
-rk_pre_aspir = (("+r+k+t".utf8 : " r_0 t".utf8) | ("+r+k".utf8 : " r_0+k".utf8));
-rk_pre_aspir_rule = CDRewrite[rk_pre_aspir, "", "", sigma_star];
-insert_pre_aspir = Optimize[pre_aspir_rule @ gt_pre_aspir @ rk_pre_aspir_rule];
-
-export ASPIRATION = Optimize[insert_post_aspir @ insert_pre_aspir];
-
-#######################################
-#
-#   FRONTING
-#
-#######################################
-
-# example: 'kíkja' 'eggi'
-fronting_kj = ("+g+g+j".utf8 : " c".utf8) | ("+g+j".utf8 : " c".utf8) | ("+k+j".utf8 : " c".utf8) | (" k_h j".utf8 : "c_h".utf8);
-fronting_kj_rule = CDRewrite[fronting_kj, "", "", sigma_star];
-fronting = ("+s+t+k".utf8 : " s c") | (common.plus_or_space "k".utf8 : " c".utf8) | (" k_h".utf8 : " c_h".utf8) | ("+g+g".utf8 : " c".utf8) | ("+g".utf8 : " c".utf8);
-fronting_rule = CDRewrite[fronting, "", common.plus_or_space common.front_vowel, sigma_star];
-export FRONT = Optimize[fronting_kj_rule @ fronting_rule];
-
-#######################################
-#
-#   SOFTEN
-#
-#######################################
-
-# examples: 'mágar', 'skógum'
-soften_cons_1 = ("+g".utf8 : "".utf8);  
-soften_cons_rule_1 = CDRewrite[soften_cons_1, 
-  ("+á".utf8 | "+ú".utf8 | "+ó".utf8 | " au:".utf8 | " ou:".utf8 | " u:".utf8), common.plus common.vowel, sigma_star];
-
-# examples: 'sofa', 'saga', 'sagði'
-soften_cons_2 = ("+f".utf8 : " v".utf8) | ("+g".utf8 : " G".utf8);  
-soften_cons_rule_2 = CDRewrite[soften_cons_2, 
-  (common.vowel | ":".utf8), common.plus (common.vowel | "b".utf8 | "ð".utf8 | "m".utf8 | "r".utf8), sigma_star];
-
-# examples: 'horfa' but NOT 'horfðum' -> 'hOrvDYm' but 'hOrDYm'  
-soften_cons_3 = ("+r+f".utf8 : " r v".utf8);  
-soften_cons_rule_3 = CDRewrite[soften_cons_3, 
-  (common.vowel | ":".utf8), common.plus common.vowel, sigma_star];
-export SOFTEN = Optimize[soften_cons_rule_1 @ soften_cons_rule_2 @ soften_cons_rule_3];
 
 ####### VARIATION ###################
 #
@@ -174,200 +31,17 @@ export SOFTEN = Optimize[soften_cons_rule_1 @ soften_cons_rule_2 @ soften_cons_r
 #
 #####################################
 
-delete_k = CDRewrite[("+k+n+t".utf8 : " n_0 t".utf8), "", "", sigma_star];
-DELETE_K = Optimize[delete_k];
-
 # Words beginning in written hv- (most of them question words like hver ‘who’, hvenær ‘when’, etc.) have [k_hv] in standard pronunciation. 
 # However, [x] is used instead in these words in a minority variant spoken in Southern Iceland.
-# examples: 'hver', 'hvenær' -> 'xE:r', 'xE:nair'
+# examples: 'hver', 'hvenær' -> 'x E: r', 'x E: n ai r'
 
 replace_hv = ("+h+v".utf8 : " x".utf8);
 replace_hv_rule = CDRewrite[replace_hv, "", "", sigma_star];
 REPLACE_HV = Optimize[replace_hv_rule];
 
-clusters_clear = 
-  ("+f+l+d".utf8 : " l t".utf8) | ("+f+n+s".utf8 : " p n_0 s".utf8) | ("+g+n+s".utf8 : " k n_0 s".utf8) 
-  | ("+g+t+s".utf8 : " x t s".utf8) | ("+k+k+t+s".utf8 : " x t s".utf8) | ("+k+t+s".utf8 : " x t s".utf8)
-  | ("+l+f+r".utf8 : " l v r".utf8) | ("+l+k+s".utf8 : " l_0 k s".utf8) | ("+l+p+s".utf8 : " l_0 p s".utf8) 
-  | ("+m+d+s".utf8 : " m t s".utf8) | ("+m+m+d+s".utf8 : " m t s".utf8) | ("+m+p+s".utf8 : " m_0 p s".utf8)
-  | ("+n+g+d+s".utf8 : " N t s".utf8) | ("+n+g+n".utf8 : " N n".utf8) | ("+n+k+s".utf8 : " N_0 k s".utf8)
-  | ("+n+n+s+k+t".utf8|"+n+s+k+t" : " n s t".utf8) | ("+p+p+t+s".utf8|"+p+t+s".utf8 : " f t s".utf8) 
-  | ("+r+f+s+t".utf8 : " r_0 s t".utf8) | ("+r+k+s".utf8 : " r_0 k s".utf8) | ("+r+k+s+t".utf8 : " r_0 s t".utf8)
-  | ("+r+k+t+s".utf8 : " r_0 t s".utf8) | ("+r+l+s".utf8 : " r t l s".utf8) | ("+r+m+t".utf8 : " r_0 m_0 t".utf8) 
-  | ("+r+n+d".utf8 : " r n t".utf8) | ("+r+p+s".utf8 : " r_0 p s".utf8) | ("+r+p+s+t".utf8 : " r_0 s t".utf8) 
-  | ("+r+s+k+s".utf8 : " s k s".utf8) 
-  | ("+r+s+k+t".utf8 : " r_0 s t".utf8) | ("+r+s+k".utf8 : " r_0 s k".utf8) | ("+r+s+t+s".utf8 : " s t s".utf8) | ("+r+s+n".utf8 : " r_0 s t n".utf8) 
-  | ("+s+k+t".utf8 : " s t".utf8); 
-clusters_clear_rule = CDRewrite[clusters_clear, "", "", sigma_star]; 
-CLUSTERS_CLEAR = Optimize[clusters_clear_rule];
+export VARIATION = Optimize[g2p.DELETE_K @ REPLACE_HV @ clear.CLUSTERS_CLEAR];
+export STEP_3 = Optimize[VARIATION];
 
-export VARIATION = Optimize[DELETE_K @ REPLACE_HV @ CLUSTERS_CLEAR];
+export G2P = Optimize[g2p.STEP_1 @ g2p.STEP_2 @ STEP_3 @ g2p.STEP_4 
+  @ g2p.STEP_5 @ g2p.STEP_6 @ g2p.STEP_7 @ g2p.STEP_8 @ g2p.STEP_9 @ g2p.STEP_10];
 
-###### VARIOUS REPLACEMENTS AND DELETIONS #######################################################################
-#
-#################################################################################################################
-
-# examples: 'sagt', 'blakta'
-k2x = ("+k+k".utf8 : " x".utf8) | ("+k".utf8 : " x".utf8) | ("+g+g".utf8 : " x".utf8) | ("+g".utf8 : " x".utf8);
-k2x_rule = CDRewrite[k2x, common.vowel, ("+t".utf8 | "+f".utf8), sigma_star];
-g2x_rule = CDRewrite["+g".utf8 : " x".utf8, common.vowel, "+s".utf8, sigma_star];
-K2X_FST = Optimize[k2x_rule @ g2x_rule];
-
-# insert 't' in words containing 'einn' ('einn', 'einnig')
-einn_pattern = ("+n+n".utf8 : " t n".utf8);
-einn_rule = CDRewrite[einn_pattern, common.vowels2tn, "", sigma_star];
-# words like 'spánni', 'skránni' do not follow this pattern, only before EOS ('Spánn')
-einn_rule_2 = CDRewrite[("+á+n+n".utf8 : "+á t n".utf8), "", "[EOS]", sigma_star];
-EINN = Optimize[einn_rule @ einn_rule_2];
-
-replace_D_rule = CDRewrite[("ð".utf8 : "t".utf8), "r" common.space*, common.space* ("l"|"n"), sigma_star];
-REPLACE_D = Optimize[replace_D_rule];
-
-replace_f = ("+f+l".utf8 : " p l".utf8) | ("+f+n".utf8 : " p n".utf8) | ("+r+f+l".utf8 : " r t l".utf8) | ("+r+f+n".utf8 : " r t n".utf8);
-replace_f_rule = CDRewrite[replace_f, common.alphabet, common.plus_or_space common.vowel, sigma_star];
-REPLACE_F = Optimize[replace_f_rule];
-
-replace_g = CDRewrite[("+g".utf8 : " G".utf8), (common.vowel | ":".utf8) common.plus_or_space*, common.space* "[EOS]", sigma_star];
-REPLACE_G = Optimize[replace_g];
-
-replace_p = ("+p+p+t".utf8 : "+f+t".utf8) | ("+p+t".utf8 : "+f+t".utf8);
-replace_p_rule = CDRewrite[replace_p, "", "", sigma_star];
-REPLACE_P = Optimize[replace_p_rule];
-
-#ng reuduction - kringla, englar, tungna, skyggndist
-ng_reduction = ("+n+g+l".utf8 : " N l".utf8) | ("+n+g+n".utf8 : " N n".utf8) | (" N k s".utf8 : " N s".utf8) | ("+g+g+n+d".utf8 : " N t");
-ngl_rule = CDRewrite[ng_reduction, "", "", sigma_star];
-NGL = Optimize[ngl_rule];
-
-# needs to be performed before simplifying double consonants
-export REPLACEMENTS = Optimize[K2X_FST @ EINN @ REPLACE_D @ REPLACE_F @ REPLACE_G @ REPLACE_P @ NGL];
-
-#############################################
-#
-#   SIMPLIFY
-#
-#############################################
-
-# 'll' rules: note that words pronounced with 'l' instaed of 'tl' will need to be hard-coded in a dictionary
-# since the pronunciation has to do with origin of the word rather than phonetic characteristics (loan words,
-# and pet names tend to be pronounced 'l' whereas the regular pronunciation is 'tl'. Example: 'villa')
-
-double_l_1 = CDRewrite[("+l+l".utf8 : " l".utf8), "", ("+d".utf8 | "+s".utf8), sigma_star];
-double_l_2 = CDRewrite[("+l+l+t".utf8 : " l_0 t".utf8), "", "", sigma_star];
-double_l_3 = CDRewrite[("+l+l".utf8 : " t l".utf8), "", "", sigma_star];
-export DOUBLE_L = Optimize[double_l_1 @ double_l_2 @ double_l_3 ];
-
-simplify_double = ("+b+b".utf8 : " p".utf8) | ("+d+d".utf8 : " t".utf8) 
-  | ("+f+f".utf8 : " f".utf8) | ("+g+g".utf8 : " k".utf8) 
-  | ("+k+k".utf8 : " k".utf8) | ("+l+l".utf8 : " l".utf8) 
-  | ("+m+m".utf8 : " m".utf8) | ("+n+n".utf8 : " n".utf8) 
-  | ("+p+p".utf8 : " p".utf8) | ("+r+r".utf8 : " r".utf8) 
-  | (common.plus_or_space "s+s".utf8 : "+s".utf8) | (common.plus_or_space "t+t".utf8 : " t".utf8);
-  
-simplify_double_rule = CDRewrite[simplify_double, "", "", sigma_star];
-export SIMPLIFY_DOUBLE = Optimize[simplify_double_rule];
-
-export SIMPLIFY = Optimize[DOUBLE_L @ SIMPLIFY_DOUBLE];
-
-#############################################
-#
-#   DEVOICING
-#
-#############################################
-
-# necessary transitions before devoicing
-rn = CDRewrite[("+r+n".utf8 : " r t n".utf8), "", "", sigma_star];
-RN = Optimize[rn]; 
-
-# example: 'hjóla' 'hnútur' 'hrjúfur'
-h_voiceless = ("+h" common.plus_or_space "j".utf8 : "C".utf8)
-  | ("+h+n".utf8 : " n_0".utf8)
-  | ("+h+r".utf8 : " r_0".utf8)
-  | ("+h+l".utf8 : " l_0".utf8);
-
-h_voiceless_rule = CDRewrite[h_voiceless, "", "", sigma_star];
-H_DEVOICING = Optimize[h_voiceless_rule];
-
-pn_devoicing = CDRewrite["+f+n".utf8 : " p n_0".utf8, "", common.space* "[EOS]", sigma_star];
-PN_DEVOICING = Optimize[pn_devoicing];
-gn_devoicing = ("+g+n+s+t".utf8 : " N_0 s t".utf8) | (common.plus_or_space "g+n+t".utf8 : " N_0 t".utf8);
-gn_devoicing_rule = CDRewrite[gn_devoicing, "", "", sigma_star];
-GN_DEVOICING = Optimize[gn_devoicing_rule];
-end_devoicing = ("+g+n".utf8 : " k n_0".utf8)| ("+k+n".utf8 : " k n_0".utf8) | ("+t+n".utf8 | " t n".utf8 : " t n_0".utf8);
-end_devoicing_rule = CDRewrite[end_devoicing, "", (common.plus common.consonant) | "[EOS]", sigma_star];
-END_DEVOICING = Optimize[end_devoicing_rule];
-
-export DEVOICING = Optimize[RN @ H_DEVOICING @ PN_DEVOICING @ GN_DEVOICING @ END_DEVOICING];
-
-
-#### FINAL STEPS ################################################################################################
-#
-#################################################################################################################
-
-# need to convert those before replacing the clusters
-basic_replacements = ("+i".utf8 : " I".utf8) | ("+u".utf8 : " Y".utf8) | (common.plus_or_space "n+g+s".utf8 : " N s".utf8)
-  | ("r r_0".utf8 : "r_0".utf8) | (" p+b".utf8 : " p".utf8) | (common.plus_or_space "k k_h".utf8 : " k_h".utf8);
-basic_replacementes_rule = CDRewrite[basic_replacements, "", "", sigma_star];
-export BASIC_REPLACEMENTS = Optimize[basic_replacementes_rule];
-
-default_clusters_1 = ("r+n+s".utf8 : "r_0 s".utf8) | ("+r+n+t".utf8 : " n_0 t".utf8) | ("c+j".utf8 : "c".utf8) | ("g x".utf8 : "x".utf8);
-default_clusters_1_rule = CDRewrite[default_clusters_1, "", "", sigma_star];
-export BASIC_G2P_CLUSTERS_1 = Optimize[default_clusters_1_rule];
-
-default_clusters = ("+ð+k".utf8 : " T k".utf8) | ("+f+l+t".utf8 : " l_0 t".utf8) | ("+f+n+d".utf8 : " m t") 
-  | ("+f+n+t".utf8 : " m_0 t".utf8) | (" k+l+d".utf8 : " l t".utf8) | ("+g+l+d".utf8 : " l t".utf8) 
-  | ("+g+g+t".utf8 : " x t".utf8)
-  | ("+g+l+t".utf8 : " l_0 t") | ("+g+n+d".utf8 : " N t".utf8) | ("+g+g+n+s+t".utf8 : " N_0 s t".utf8) 
-  | ("+l+t".utf8 : " l_0 t".utf8) 
-  | ("+l+k+t".utf8 : " l_0 t".utf8) | ("+l+f+d".utf8 : " l t".utf8) | ("+l+f+t".utf8 : " l_0 t".utf8)
-  | ("+l+g+d".utf8 : " l t".utf8) | ("+l+g+t".utf8 : " l_0 t".utf8) | ("+l+g+n".utf8 : " l n".utf8)
-  | ("+l+k".utf8 : " l_0 k".utf8) | ("+l c".utf8 : " l_0 c".utf8) | ("+l+p".utf8 : " l_0 p".utf8)
-  | (common.plus_or_space "l+t".utf8 : " l_0 t".utf8) 
-  | ("+m+b+d".utf8 : " m t".utf8) | ("+m+b+s".utf8 : " m s".utf8) | ("+m+p".utf8 : " m_0 p".utf8) 
-  | ("+m+k".utf8 : " m_0 k".utf8) | (("m+t".utf8 | "m+b+t".utf8) : "m_0 t".utf8) | ("+n+g+d".utf8 : " N t".utf8)
-  | ("+n+g+t".utf8 : " N_0 t".utf8) | ("+n+k+t".utf8 : " n_0 t".utf8)
-  | ("+n+k".utf8 : " n_0 k".utf8) | ("+r+f+t".utf8 : " r_0 t".utf8) | ("+r+p+t".utf8 : " r_0 t".utf8)
-  | ("+n+t".utf8 : " n_0 t".utf8) | ("+ey".utf8 : " ei".utf8)  | ("+r+f+ð".utf8 : " r D".utf8) 
-  | ("+r+k+t".utf8 : " r_0 t".utf8) | ("+r+l".utf8 : " r t l".utf8) 
-  | ("+r+g+ð".utf8 : " r D".utf8) | ("+r+g+n".utf8 : " r t n".utf8) | ("+r+g+t".utf8 : " r_0 t".utf8) 
-  | ("+r+s+l".utf8 common.plus_or_space : " r_0 s t l ".utf8) | ("s+t+k".utf8 : "s k".utf8)
-  | (common.plus_or_space "s+l".utf8 common.plus_or_space : " s t l+".utf8) | ("s+n".utf8 : "s t n".utf8) | ("+t+n+s".utf8 : " s".utf8)
-  | (" h t n_0+s".utf8 : " s".utf8)
-  | ("+æ+t+l".utf8 : " ai h t l".utf8) | ("+r+k".utf8 : " r_0 k".utf8) | ("+r+s".utf8 : " r_0 s".utf8) 
-  | ("+r+t".utf8 : " r_0 t".utf8) | ("+r+p".utf8 : " r_0 p".utf8) | ("+r+ð+n".utf8 : " r t n".utf8);
-default_clusters_rule = CDRewrite[default_clusters, "", "", sigma_star]; 
-export BASIC_G2P_CLUSTERS = Optimize[default_clusters_rule];
-
-default_g2p = 
-   ("+b".utf8 : " p".utf8)
-  | ("+d".utf8 : " t".utf8)
-  | ("+ð".utf8 : " D")
-  | ("+ei".utf8 : " ei".utf8)
-  | ("+e".utf8 : " E".utf8)
-  | ("+é".utf8 : " j E".utf8)
-  | ("+y".utf8 : " I".utf8)
-  | ("+í".utf8 : " i".utf8)
-  | ("+ý".utf8 : " i".utf8)
-  | ("+g".utf8 : " k".utf8)
-  | ("+o".utf8 : " O".utf8)
-  | ("+ó".utf8 : " ou".utf8)
-  | ("+ú".utf8 : " u".utf8)
-  | ("+þ".utf8 : " T".utf8)
-  | ("+æ".utf8 : " ai".utf8)
-  | (common.plus_or_space "ö".utf8 : " 9".utf8)
-  | (common.plus_or_space "á".utf8 : " au".utf8)
-  | ("+au".utf8 : " 9i".utf8)
-  | ("+t+h".utf8 : "+t_h".utf8);
-   
-default_g2p_rule = CDRewrite[default_g2p, "", "", sigma_star];
-export BASIC_G2P = Optimize[default_g2p_rule];
-
-delete_plus_symbol = CDRewrite["+".utf8 : " ", "", "", sigma_star];
-DELETE_PLUS = Optimize[delete_plus_symbol];
-
-export STEP_1 = Optimize[ALIGN_GRAPHEMES];
-export STEP_2 = Optimize[X_KS_FST @ VOWEL_GI_FST @ NG_NK @ LONG_VOWELS @ VARIATION @ REPLACEMENTS @ ASPIRATION @ FRONT @ SOFTEN];
-export STEP_3 = Optimize[SIMPLIFY @ DEVOICING];
-export STEP_4 = Optimize[BASIC_REPLACEMENTS @ BASIC_G2P_CLUSTERS_1 @ BASIC_G2P_CLUSTERS @ BASIC_G2P @ DELETE_PLUS];
-
-export G2P = Optimize[STEP_1 @ STEP_2 @ STEP_3 @ STEP_4];
