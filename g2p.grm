@@ -170,7 +170,7 @@ export SOFTEN = Optimize[soften_cons_rule_1 @ soften_cons_rule_2 @ soften_cons_r
 
 ####### VARIATION ###################
 #
-# These rules are dependent on dialect/variation
+# Rules for south and clear pronunciation
 #
 #####################################
 
@@ -296,7 +296,9 @@ END_DEVOICING = Optimize[end_devoicing_rule];
 export DEVOICING = Optimize[RN @ H_DEVOICING @ PN_DEVOICING @ GN_DEVOICING @ END_DEVOICING];
 
 
-#### FINAL STEPS ################################################################################################
+#################################################################################################################
+#
+#  CONSONANT CLUSTERS 
 #
 #################################################################################################################
 
@@ -332,6 +334,12 @@ default_clusters_rule = CDRewrite[default_clusters, "", "", sigma_star];
 northeast_clusters_rule = CDRewrite[northeast_clusters, "", "", sigma_star];
 export BASIC_G2P_CLUSTERS = Optimize[northeast_clusters_rule @ default_clusters_rule];
 
+##################################################################################################################
+#
+#  FINAL RULES
+#
+##################################################################################################################
+
 default_g2p = 
    ("+b".utf8 : " p".utf8)
   | ("+d".utf8 : " t".utf8)
@@ -358,6 +366,8 @@ export BASIC_G2P = Optimize[default_g2p_rule];
 
 delete_plus_symbol = CDRewrite["+".utf8 : " ", "", "", sigma_star];
 DELETE_PLUS = Optimize[delete_plus_symbol];
+
+# The steps can be modified in other grammars, but they will use most of the steps as implemented here:
 
 export STEP_1 = Optimize[ALIGN_GRAPHEMES];
 export STEP_2 = Optimize[X_KS_FST @ VOWEL_GI_FST @ NG_NK @ LONG_VOWELS];
