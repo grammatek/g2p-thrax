@@ -20,14 +20,14 @@ find_package(Boost REQUIRED
 set(GRAMMAR ${CMAKE_SOURCE_DIR}/grammars/g2p.grm)
 set(GRAMMAR_ARCHIVE  ${CMAKE_SOURCE_DIR}/grammars/g2p.far)
 
-add_custom_command(OUTPUT ${GRAMMAR_ARCHIVE}
-        PRE_BUILD
-        COMMAND ${THRAXCOMPILER} --input_grammar=${GRAMMAR} --output_far=${GRAMMAR_ARCHIVE}
-        DEPENDS ${GRAMMAR}
-        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-        COMMENT "Compiling grammar ${GRAMMAR} => ${GRAMMAR_ARCHIVE}"
-        VERBATIM
-        )
+#add_custom_command(OUTPUT ${GRAMMAR_ARCHIVE}
+#        PRE_BUILD
+#        COMMAND ${THRAXCOMPILER} --input_grammar=${GRAMMAR} --output_far=${GRAMMAR_ARCHIVE}
+#        DEPENDS ${GRAMMAR}
+#       WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+#        COMMENT "Compiling grammar ${GRAMMAR} => ${GRAMMAR_ARCHIVE}"
+#        VERBATIM
+#        )
 add_custom_target(g2p_compile DEPENDS ${GRAMMAR_ARCHIVE})
 
 # add custom rule for dialects
