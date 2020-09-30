@@ -1,6 +1,5 @@
 import 'common.grm' as common;
 import 'g2p.grm' as g2p;
-import 'g2p-clear.grm' as clear;
 
 ######## G2P-rules for clear Icelandic pronunciation in the Southern variant ("hv"-pronunciation) ########
 #
@@ -39,7 +38,7 @@ replace_hv = ("+h+v".utf8 : " x".utf8);
 replace_hv_rule = CDRewrite[replace_hv, "", "", sigma_star];
 REPLACE_HV = Optimize[replace_hv_rule];
 
-export VARIATION = Optimize[g2p.DELETE_K @ REPLACE_HV @ clear.CLUSTERS_CLEAR];
+export VARIATION = Optimize[g2p.DELETE_K @ REPLACE_HV @ g2p.CLUSTERS_CLEAR];
 export STEP_3 = Optimize[VARIATION];
 
 export G2P = Optimize[g2p.STEP_1 @ g2p.STEP_2 @ STEP_3 @ g2p.STEP_4 

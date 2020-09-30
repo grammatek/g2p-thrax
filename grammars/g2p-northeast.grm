@@ -1,6 +1,6 @@
 import 'common.grm' as common;
 import 'g2p.grm' as g2p;
-import 'g2p-north' as north;
+import 'g2p-north.grm' as north;
 
 ######## G2P-rules for clear Icelandic pronunciation with the North-Eastern variant ####################################
 #
