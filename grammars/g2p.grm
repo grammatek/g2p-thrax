@@ -195,7 +195,7 @@ clusters_clear =
   | ("+r+s+k+t".utf8 : " r_0 s t".utf8) | ("+r+s+k".utf8 : " r_0 s k".utf8) | ("+r+s+t+s".utf8 : " s t s".utf8) | ("+r+s+n".utf8 : " r_0 s t n".utf8) 
   | ("+s+k+t".utf8 : " s t".utf8); 
 clusters_clear_rule = CDRewrite[clusters_clear, "", "", sigma_star]; 
-CLUSTERS_CLEAR = Optimize[clusters_clear_rule];
+export CLUSTERS_CLEAR = Optimize[clusters_clear_rule];
 
 export VARIATION = Optimize[DELETE_K @ REPLACE_HV @ CLUSTERS_CLEAR];
 
@@ -330,7 +330,7 @@ default_clusters =  ("+f+n+d".utf8 : " m t") | (" k+l+d".utf8 : " l t".utf8) | (
   | (" h t n_0+s".utf8 : " s".utf8) | ("+æ+t+l".utf8 : " ai h t l".utf8) | ("+r+k".utf8 : " r_0 k".utf8) | ("+r+s".utf8 : " r_0 s".utf8) 
   | ("+r+t".utf8 : " r_0 t".utf8) | ("+r+p".utf8 : " r_0 p".utf8) | ("+r+ð+n".utf8 : " r t n".utf8);
 
-default_clusters_rule = CDRewrite[default_clusters, "", "", sigma_star]; 
+export default_clusters_rule = CDRewrite[default_clusters, "", "", sigma_star]; 
 northeast_clusters_rule = CDRewrite[northeast_clusters, "", "", sigma_star];
 export BASIC_G2P_CLUSTERS = Optimize[northeast_clusters_rule @ default_clusters_rule];
 

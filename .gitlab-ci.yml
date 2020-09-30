@@ -14,7 +14,6 @@ build:linux:
   artifacts:
     paths:
       - build/
-      - g2p.far
 
 test:linux:
   extends: .build
