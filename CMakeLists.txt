@@ -33,6 +33,10 @@ add_custom_target(g2p_compile DEPENDS ${GRAMMAR_ARCHIVE})
 # add custom rule for dialects
 set(GRAMMAR_NORTH ${CMAKE_SOURCE_DIR}/grammars/g2p-north.grm)
 set(GRAMMAR_ARCHIVE_NORTH  ${CMAKE_SOURCE_DIR}/grammars/g2p-north.far)
+set(GRAMMAR_NORTHEAST ${CMAKE_SOURCE_DIR}/grammars/g2p-northeast.grm)
+set(GRAMMAR_ARCHIVE_NORTHEAST  ${CMAKE_SOURCE_DIR}/grammars/g2p-northeast.far)
+set(GRAMMAR_SOUTH ${CMAKE_SOURCE_DIR}/grammars/g2p-south.grm)
+set(GRAMMAR_ARCHIVE_SOUTH  ${CMAKE_SOURCE_DIR}/grammars/g2p-south.far)
 
 # General compilation options
 add_compile_options(
