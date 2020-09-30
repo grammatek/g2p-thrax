@@ -30,6 +30,10 @@ add_custom_command(OUTPUT ${GRAMMAR_ARCHIVE}
         )
 add_custom_target(g2p_compile DEPENDS ${GRAMMAR_ARCHIVE})
 
+# add custom rule for dialects
+set(GRAMMAR_NORTH ${CMAKE_SOURCE_DIR}/g2p-north.grm)
+set(GRAMMAR_ARCHIVE_NORTH  ${CMAKE_SOURCE_DIR}/g2p-north.far)
+
 # General compilation options
 add_compile_options(
         "-Wall" "-W" "-Wpedantic" "-Wextra" "-fexceptions" "-Wno-unused-parameter" "-Wno-sign-compare" "-Wno-extra-semi"

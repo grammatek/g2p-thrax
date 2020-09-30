@@ -17,3 +17,5 @@ target_link_libraries(thraxg2p_test PRIVATE thraxg2plib CppUTest CppUTestExt dl)
 add_dependencies(thraxg2p_test g2p_compile)
 
 add_test(NAME thraxg2p_test COMMAND thraxg2p_test --rules=G2P --far=${GRAMMAR_ARCHIVE} --test_file=${CMAKE_CURRENT_SOURCE_DIR}/test_transcripts.txt)
+add_test(NAME thraxg2p_test_north COMMAND thraxg2p_test --rules=G2P --far=${GRAMMAR_ARCHIVE_NORTH} --test_file=${CMAKE_CURRENT_SOURCE_DIR}/test_transcripts_north.txt)
+
