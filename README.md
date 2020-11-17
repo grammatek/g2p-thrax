@@ -62,3 +62,13 @@ Copyright information.
 Most of the source code of `RewriteTesterUtils.[h,cpp]` is blatantly copied from the Thrax command-line rewrite tester
 (https://github.com/mjansche/thrax/blob/master/src/bin/rewrite-tester-utils.cc), and has been adapted to support word
 lists provided by the command-line argument `--word_file`.
+
+## Trouble shooting & inquiries
+
+This application is still in development. If you encounter any errors, feel free to open an issue inside the
+[issue tracker](https://github.com/grammatek/g2p-thrax/issues). You can also [contact us](mailto:info@grammatek.com) via email.
+
+## Contributing
+
+You can contribute to this project by forking it, creating a private branch and opening a new
+ [pull request](https://github.com/grammatek/g2p-thrax/pulls).
