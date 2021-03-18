@@ -1,0 +1,75 @@
+export alphabet = Optimize[
+           "a".utf8 | "á".utf8 | "b".utf8 | "d".utf8 | "ð".utf8 |
+           "e".utf8 | "é".utf8 | "f".utf8 | "g".utf8 | "h".utf8 |
+           "i".utf8 | "í".utf8 | "j".utf8 | "k".utf8 | "l".utf8 |
+           "m".utf8 | "n".utf8 | "o".utf8 | "ó".utf8 | "p".utf8 |
+           "r".utf8 | "s".utf8 | "t".utf8 | "u".utf8 | "ú".utf8 |
+           "v".utf8 | "x".utf8 | "y".utf8 | "ý".utf8 | "þ".utf8 |
+           "æ".utf8 | "ö".utf8 | "å".utf8 | "ä".utf8 | "ø".utf8 |
+           "c".utf8 | "q".utf8 | "w".utf8 | "z".utf8 | "ü".utf8 | 
+           "ç".utf8 | "ë".utf8 ];
+
+export consonant = Optimize[
+           "b".utf8 | "d".utf8 | "ð".utf8 |
+           "f".utf8 | "g".utf8 | "h".utf8 |
+           "j".utf8 | "k".utf8 | "l".utf8 |
+           "m".utf8 | "n".utf8 | "p".utf8 |
+           "r".utf8 | "s".utf8 | "t".utf8 |
+           "v".utf8 | "x".utf8 | "þ".utf8 |
+           "c".utf8 | "q".utf8 | "w".utf8 | "z".utf8 |
+		   "G".utf8 | "D".utf8 | "T".utf8 | "c".utf8 | "C".utf8
+		   "p_h".utf8 | "t_h".utf8 | "c_h".utf8 | "k_h".utf8
+		   "N".utf8 | "N_0".utf8];
+
+export liquid = Optimize["j".utf8 | "r".utf8 | "v".utf8];
+export lateral = Optimize["l".utf8];
+
+export vowel = Optimize[
+           "a".utf8 | "á".utf8 | "e".utf8 | "é".utf8 |"i".utf8 | "í".utf8 |"o".utf8 | "ó".utf8
+| "u".utf8 | "ú".utf8 |"y".utf8 | "ý".utf8 |"æ".utf8 | "ö".utf8 | "E".utf8 | "O".utf8 | "Y".utf8
+| "9".utf8 | "9i".utf8 | "Yi".utf8 | "I".utf8 |"ai".utf8 | "ay".utf8 | "au".utf8 | "ea".utf8
+| "ee".utf8 | "ei".utf8 | "eu".utf8 | "ew".utf8 | "ie".utf8 | "oa".utf8 | "oe".utf8 | "oi".utf8 
+| "oo".utf8 | "ou".utf8 | "oy".utf8 | "ow".utf8 | "ue".utf8 | "ui".utf8];
+
+export ALPHABET = Optimize[
+           "A".utf8 | "Á".utf8 | "B".utf8 | "D".utf8 | "Ð".utf8 |
+           "E".utf8 | "É".utf8 | "F".utf8 | "G".utf8 | "H".utf8 |
+           "I".utf8 | "Í".utf8 | "J".utf8 | "K".utf8 | "L".utf8 |
+           "M".utf8 | "N".utf8 | "O".utf8 | "Ó".utf8 | "P".utf8 |
+           "R".utf8 | "S".utf8 | "T".utf8 | "U".utf8 | "Ú".utf8 |
+           "V".utf8 | "X".utf8 | "Y".utf8 | "Ý".utf8 | "Þ".utf8 |
+           "Æ".utf8 | "Ö".utf8 | "Å".utf8 | "Ä".utf8 | "Ø".utf8 |
+           "C".utf8 | "Q".utf8 | "W".utf8 | "Z".utf8 | "Ü".utf8 |
+           "Ç".utf8 | "Ë".utf8 ];
+
+export Digits = Optimize[
+        "1".utf8 | "2".utf8 | "3".utf8 | "4".utf8 | "5".utf8 |
+        "6".utf8 | "7".utf8 | "8".utf8 | "9".utf8 | "0".utf8 ];
+
+export u8_punct = Optimize[
+           ".".utf8 | ",".utf8 | ":".utf8 | ";".utf8 | "?".utf8 |
+           "\"".utf8 | "\'".utf8 | "-".utf8 | "“".utf8 | "„".utf8 |
+           ")".utf8 | "(".utf8 | "!".utf8 | "&".utf8 | "\\".utf8 |
+           "«".utf8 | "»".utf8 | ">".utf8 | "<".utf8 | "…".utf8 |
+           "—".utf8 | "–".utf8 | "%".utf8 | "‰".utf8 | "/".utf8 |
+           "°".utf8 | "º".utf8 | "\[".utf8 | "\]".utf8 | "´".utf8 |
+           "…".utf8 | "_".utf8];
+		   
+export plus = Optimize["+".utf8];
+
+export whole_alphabet = Optimize[alphabet | ALPHABET | Digits | " ".utf8 | plus | u8_punct];
+
+export space = Optimize[
+    " ".utf8 | "\t".utf8 | "\n".utf8 | "\r".utf8
+];
+export plus_or_space = Optimize[plus | space];
+
+export NotSpace = Optimize[whole_alphabet - space];
+
+export hardcoded_any_context = Optimize[("+t+h+a+t".utf8 : " D a t".utf8) 
+| ("+t+h+i+s".utf8 : " D I s".utf8) | ("+g+r+ou+p".utf8 : " k r u p".utf8) | ("+y+ou+r".utf8 : " j O r".utf8) 
+| ("+w+o+m+e+n".utf8 : " v I m E n".utf8) | ("+w+h+o".utf8 : " h u".utf8) | ("+u+n+i+t+e+d".utf8 : " j u n ai t E t".utf8)];
+
+export hardcoded_one_context = Optimize[("+t+h+e".utf8 : " D E".utf8) | ("+t+o".utf8 : " t_h u".utf8) | ("+i".utf8 : " ai".utf8) 
+| ("+y+ou".utf8 : " j u".utf8) | ("+d+o".utf8 : " t u".utf8) | ("+y+e+s".utf8 : " j E s".utf8) 
+| ("+t+h+ou+g+h".utf8 : " D ou".utf8) | ("+t+h+e+n".utf8 : " D E n".utf8) | ("+t+h+e+r+e".utf8 : " D E r".utf8) | ("+t+h+e+m".utf8 : " D E m".utf8)];
