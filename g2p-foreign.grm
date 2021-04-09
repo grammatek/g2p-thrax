@@ -1,0 +1,513 @@
+# To-do: Hvernig er best að ganga frá copyright málum hér?
+import 'common-foreign.grm' as common;
+
+######## G2P-rules for standard, clear Icelandic pronunciation of foreign words ##############################
+#
+# * input string is one token
+# * input should be normalized (no digits, punctuation or other symbols, etc. are handled in this grammar)
+#
+# FSTs written as upper case are steps listed in the final export statement.
+#
+# This grammar was developed and tested using Version 1.3.3 of Thrax (http://www.openfst.org/twiki/bin/view/GRM/Thrax)
+# and OpenFst 1.7.7 (http://www.openfst.org/twiki/bin/view/FST/WebHome)
+#
+# To compile and test this grammar from the command line:
+#
+# $thraxmakedep g2p-foreign.grm
+# $make
+# $thraxrewrite-tester --far=g2p-foreign.far --rules=G2P --input_mode=utf8 --output_mode=utf8
+#
+#############################################################################################################
+
+# all possible input and output symbols
+sigma_star = common.whole_alphabet*;
+
+#### PREPARE INPUT ##########################################################################################
+#
+# We need to take into account that input and output symbol tables overlap, and thus, without some preprocessing,
+# output of earlier stages could be handled as input symbols at later stages. We prevent this by adding a '+'
+# in front of each input symbol.
+#
+# Insert a '+' before each character, and then join diphthongs:
+# 'airways' becomes '+ai+r+w+ay+s'
+#
+#############################################################################################################
+
+separate_alpha = CDRewrite["".utf8 : "+".utf8, "".utf8, common.alphabet, sigma_star];
+# Note that the letter 'q' (which does not exist in Icelandic), almost exclusively occurs before a silent 'u' + another vowel
+# To avoid this affecting our dipthongs, we unite 'q' + 'u' at this stage
+deal_with_qu = CDRewrite["+q+u".utf8 : " k v".utf8, "", "", sigma_star];
+reunite_diphthongs_a = CDRewrite["+".utf8 : "".utf8, "a".utf8, "i".utf8 | "y".utf8 | "u".utf8, sigma_star];
+reunite_diphthongs_e = CDRewrite["+".utf8 : "".utf8, "e".utf8, "a".utf8 | "e".utf8 | "i".utf8 | "u".utf8 | "y".utf8 | "w".utf8, sigma_star];
+reunite_diphthongs_i = CDRewrite["+".utf8 : "".utf8, "i".utf8, "e".utf8, sigma_star];
+reunite_diphthongs_o = CDRewrite["+".utf8 : "".utf8, "o".utf8, "a".utf8 | "e".utf8 | "i".utf8 | "o".utf8
+| "u".utf8 | "y".utf8 | "w".utf8, sigma_star];
+reunite_diphthongs_u = CDRewrite["+".utf8 : "".utf8, "u".utf8, "e".utf8 | "i".utf8, sigma_star];
+
+reunite_diphthongs = Optimize[reunite_diphthongs_a @ reunite_diphthongs_e @ reunite_diphthongs_i 
+@ reunite_diphthongs_o @ reunite_diphthongs_u];
+
+export ALIGN_GRAPHEMES = Optimize[separate_alpha @ deal_with_qu @ reunite_diphthongs];
+
+#### G2P-RULES ##############################################################################################
+#
+#############################################################################################################
+
+#######################################
+#
+#   HARDCODED
+#
+#######################################
+
+# Some very common, and irregular, words have been hardcoded in the file commmon-foreign.grm
+# These include pronouns and function words like 'I', 'to', 'you', 'who', etc.
+hardcoded_0 = CDRewrite[("+t+h+ei+r".utf8 : " D E r".utf8) | ("+t+h+ey".utf8 : " D ei".utf8), "", "", sigma_star];
+hardcoded_1 = CDRewrite[common.hardcoded_any_context, "", "", sigma_star];
+hardcoded_2 = CDRewrite[common.hardcoded_one_context, "[BOS]", "[EOS]", sigma_star];
+
+export HARDCODED = Optimize[hardcoded_0 @ hardcoded_1 @ hardcoded_2];
+
+#####################################
+#
+#  NG_NK
+#
+#####################################
+
+# an approximation of the [ntsj] sound in 'change', 'messenger' etc. 
+ng_e = ("+a+n+g".utf8 : " ei n t s j".utf8) | ("+e+n+g".utf8 : " E n t s j".utf8);
+ng_e_rule = CDRewrite[ng_e, "", "+e".utf8 | "+i".utf8, sigma_star];
+NG_E = Optimize[ng_e_rule];
+
+# 'i'/'u'/'ou' pronounced [i], [9] and [9] respectively in 'thinks', 'sung', 'young' etc
+ng_nk = ("+i".utf8 : " i".utf8) | ("+u".utf8 : " 9".utf8) | ("+ou".utf8 : " 9".utf8);
+ng_nk_rule = CDRewrite[ng_nk, "", "+n+g" | "+n+k", sigma_star];
+NG_NK = Optimize[ng_nk_rule];
+
+# In standard Icelandic pronunciation of English, 'nk' becomes [J_0c] in a front vowel environment like 'thinking'
+front_nasals = ("+n+k".utf8 : " J_0 c".utf8);
+front_nasals_rule = CDRewrite[front_nasals, "", common.plus_or_space common.front_vowel, sigma_star];
+FRONT_NASALS = Optimize[front_nasals_rule];
+
+# Elsewhere 'nk' becomes [N_0k] in 'bank', 'think', etc.
+# 'ng', meanwhile', typically pronounced something like [N]
+nasals = ("+n+g".utf8 : " N".utf8) | ("+n+k".utf8 : " N_0 k".utf8);
+nasals_rule = CDRewrite[nasals, "", "", sigma_star];
+NASALS = Optimize[nasals_rule];
+
+export NG_NK_ALL = Optimize[NG_E @ NG_NK @ FRONT_NASALS @ NASALS];
+
+#######################################
+#
+#   C_AS_S
+#
+#######################################
+
+# The letter 'c' does not exist in Icelandic. We assume it is pronounced as [k] except in the following cases:
+
+# as [sj] before 'ia' in words like 'politician'
+c_sh_rule = CDRewrite[("+c+i".utf8 : " s j".utf8), "", "+a".utf8, sigma_star];
+export C_SH = Optimize[c_sh_rule];
+
+# as [k] in 'school', 'scheduling', 'chemistry', etc.
+ch_exceptions = ("+s+c+h+oo+l".utf8 : " s k u l".utf8) | ("+s+c+h+e+d+u+l".utf8 : " s k E t j u l".utf8) 
+| ("+c+h+e+m".utf8 : " k_h E m".utf8);
+ch_exceptions_rule = CDRewrite[ch_exceptions, "", "", sigma_star];
+export CH_EXCEPTIONS = Optimize[ch_exceptions_rule];
+
+# as [tsj] together with 'h' (or 'tch') before a vowel or at the ends of words, as in 'children', 'witch'
+ch = ("+c+h".utf8 : " t s j".utf8) | ("+t+c+h".utf8 : " t s j".utf8);
+ch_rule = CDRewrite[ch, "", ("[EOS]" | common.plus_or_space common.vowel), sigma_star]; 
+export CH_RULE = Optimize[ch_rule];
+
+# as [x] before 't' in words like 'project', 'electric'
+c_x_rule = CDRewrite[("+c".utf8 : " x".utf8), common.vowel, "+t".utf8, sigma_star];
+C_X_RULE = Optimize[c_x_rule];
+
+# as [s] before 'i'/'e'/'y' in words like 'city', 'center', 'cycle' 
+c_s_rule = CDRewrite[("+c".utf8 : " s".utf8), "", ("+i".utf8 | "+e".utf8 | "+y".utf8), sigma_star];
+export C_S = Optimize[c_s_rule];
+
+export C_AS_S = Optimize[C_SH @ CH_EXCEPTIONS @ CH_RULE @ C_X_RULE @ C_S];
+
+########################################
+#
+#  ASPIRATION
+#
+########################################
+
+# [p], [t] and [k] are always aspirated at the starts of words
+post_aspir = ("+k" : " k_h") | ("+p" : " p_h") | ("+t" : " t_h") | ("+c" : " k_h") | ("+c+h" : " k_h") | (" k v" : " k_h v");
+post_aspir_rule = CDRewrite[post_aspir, "[BOS]", common.plus_or_space (common.vowel | common.liquid | common.lateral), sigma_star];
+insert_post_aspir = Optimize[post_aspir_rule];
+
+# certain constructs are also pre-aspirated in Icelandic pronunciation
+pre_aspir = ("+c+k".utf8 : " h k".utf8) | ("+p+p".utf8 : " h p".utf8) | ("+t+t".utf8 : " h t".utf8)
+| ("+p+p+l".utf8 : " h p l".utf8) | ("+p+l".utf8 : " h p l".utf8) | ("+p+n".utf8 : " h p n".utf8) 
+| ("+t+t+l".utf8 : " h t l".utf8) | ("+t+l".utf8 : " h t l".utf8) | ("+t+m".utf8 : "+h+t+m".utf8) 
+| ("+t+n".utf8 : " h t n".utf8) | ("+c+k+l".utf8 : " h k u l".utf8) | ("+c+k+n".utf8 : " h k n".utf8);
+pre_aspir_rule = CDRewrite[pre_aspir, common.vowel, "", sigma_star];
+insert_pre_aspir = Optimize[pre_aspir_rule];
+
+export ASPIRATION = Optimize[insert_post_aspir @ insert_pre_aspir];
+
+#######################################
+#
+#   I_RULES
+#
+#######################################
+
+# 'i' is very commonly pronounced [ai] and the 'e' is dropped when a single consonant occurs in between, in words like time, ice, likes, etc.
+
+# Some common exceptions include words like 'office', 'service', 'give', 'active'
+short_i = ("+i".utf8 : " I".utf8);
+give_i = CDRewrite[short_i, "+t".utf8 | "+g".utf8, "+v+e".utf8, sigma_star];
+office_i = CDRewrite[short_i, "+f".utf8 | "+v".utf8 | "+t".utf8, " s+e".utf8, sigma_star];
+SHORT_I = Optimize[give_i @ office_i];
+
+# Otherwise:
+ice_i_1 = CDRewrite[("+i".utf8 : " ai".utf8), "", common.plus_or_space common.consonant "+e".utf8 "[EOS]" 
+| common.plus_or_space common.consonant "+e+s".utf8 "[EOS]" | common.plus_or_space common.consonant "+e+d".utf8 "[EOS]", sigma_star];
+ice_i_2 = CDRewrite[("+i s+e".utf8 : " ai s".utf8), "[BOS]", "", sigma_star];
+ICE_I = Optimize[ice_i_1 @ ice_i_2];
+
+# 'i' is pronounced [i] before 'an'/'ans' at the ends of words like 'guardian', 'russians' etc.
+guardian_i = CDRewrite[("+i".utf8 : " i".utf8), "", "+a".utf8 "+n".utf8 "[EOS]" | "+a".utf8 "+n".utf8 "s".utf8 "[EOS]", sigma_star];
+GUARDIAN_I = Optimize[guardian_i]; 
+
+export I_RULES = Optimize[SHORT_I @ ICE_I @ GUARDIAN_I];
+
+#######################################
+#
+#   EA_EXCEPTIONS
+#
+#######################################
+
+# We assume [i] is the default and most common pronunciation of the common digraph 'ea', expect for the following:
+
+# [a] in the common word 'heart', any context
+heart_ea = CDRewrite[("+h+ea+r+t".utf8 : " h a r_0 t".utf8), "", "", sigma_star];
+HEART_EA = Optimize[heart_ea];
+
+# [9] in words such as 'earth', 'search', 'early', 'earn'
+earth_ea = ("+ea+r+t+h".utf8 : " 9 r T".utf8) | ("+ea+r t s j".utf8 : " 9 r t s j".utf8) | ("+ea+r+c+h".utf8 : " 9 r t s j".utf8);
+earth_ea_rule = CDRewrite[earth_ea, "", "", sigma_star];
+EARTH_EA = Optimize[earth_ea_rule];
+
+earl_ea = ("+ea+r+l".utf8 : " 9 r l".utf8) | ("+ea+r+n".utf8 : " 9 r n".utf8);
+earl_ea_rule_1 = CDRewrite[earl_ea, "[BOS]", "", sigma_star];
+earl_ea_rule_2 = CDRewrite[earl_ea, "", "[EOS]", sigma_star];
+EARL_EA_1 = Optimize[earl_ea_rule_1];
+EARL_EA_2 = Optimize[earl_ea_rule_2];
+
+# [ei] in words containing the stems 'great', 'break' and 'steak'
+great_ea = ("+g+r+ea+t".utf8 : " k r ei t".utf8) | ("+b+r+ea+k".utf8 : " p r ei k".utf8) | ("+s+t+ea+k".utf8 : " s t ei k".utf8);
+great_ea_rule = CDRewrite[great_ea, "", "", sigma_star];
+GREAT_EA = Optimize[great_ea_rule];
+
+# [i ei] in the word 'create' and words derived thereof (an exception would be 'creature')
+create_ea = CDRewrite[("+ea".utf8 : " i ei".utf8), " k_h+r", "+t".utf8 common.plus_or_space common.vowel, sigma_star];
+CREATE_EA = Optimize[create_ea];
+
+# combines with 'u' to make [ju] in 'beauty' and words derived thereof
+beauty_ea = CDRewrite[("+b+eau+t".utf8 : " p j u t".utf8), "", "", sigma_star];
+BEAUTY_EA = Optimize[beauty_ea];
+
+# otherwise combines with 'u' to make [ou] in french loanwords such as 'chateaux' and 'beau'
+french_ea = CDRewrite[("+eau".utf8 | "+eau+x" : " ou".utf8), "", "", sigma_star];
+FRENCH_EA = Optimize[french_ea];
+
+# [i a] at the end of words like 'europeans', 'crimean', etc. 
+# (but only after a vowel and a single consonant to avoid catching cases like 'jeans' or 'clean')
+european_ea = ("+ea+n".utf8 : " i a n".utf8) | ("+ea+n+s".utf8 : " i a n s".utf8);
+european_ea_rule = CDRewrite[european_ea, common.plus_or_space common.vowel common.plus_or_space common.consonant, "[EOS]", sigma_star];
+EUROPEAN_EA = Optimize[european_ea_rule];
+
+# Finally, [E] in some very common words and stems like 'head', 'death', 'bread', etc.
+head_ea = ("+h+ea+d".utf8 : " h E t".utf8) | ("+d+ea+d".utf8 : " t E t".utf8) | ("+d+ea+t+h".utf8 : " t e T".utf8) 
+| ("+b+r+ea+d".utf8 : " p r E t".utf8) | ("+b+ea+r".utf8 : " p E r".utf8) | ("+ea+s+u+r+e".utf8 : " E s j Y r".utf8)
+| ("+ea+l+t+h".utf8 : " E l T".utf8) | ("+ea+t+h+e+r".utf8 : " E D E r".utf8) | ("+b+r+ea+s+t".utf8 : " p r E s t".utf8) 
+| ("+d+ea+f".utf8 : "t E f".utf8) | ("+d+r+ea+d".utf8 : " t r E t".utf8);
+head_ea_rule = CDRewrite[head_ea, "", "", sigma_star];
+HEAD_EA = Optimize[head_ea_rule];
+
+export EA_EXCEPTIONS = Optimize[HEART_EA @ EARTH_EA @ EARL_EA_1 @ EARL_EA_2 @ GREAT_EA @ CREATE_EA @ BEAUTY_EA @ FRENCH_EA @ EUROPEAN_EA @ HEAD_EA];
+
+#######################################
+#
+#   OTHER_DIGRAPH_EXCEPTIONS
+#
+#######################################
+
+# We assume the most common digraph pronunciations are those given in default_digraphs, except with some common exceptions:
+
+# 'ai' is pronounced [E] before 'r' in words like 'air','stairs', otherwise we assume [ei]
+ai_exc = CDRewrite[("+ai+r".utf8 : " E r".utf8), "", "", sigma_star];
+AI_EXCEPTIONS = Optimize[ai_exc];
+
+# 'eu' is assumed to be [u] except at the starts of strings, where it is [ju] ('europe', 'euro') 
+eu_exc_1 = CDRewrite[("+eu".utf8 : "j u".utf8), "[BOS]", "", sigma_star];
+# and before 'm' at the ends of words, where it makes [iY] ('museum', 'petroleum') (also 'iu' in words like 'medium')
+eu_exc_2 = CDRewrite[("+eu".utf8 | "+i+u".utf8 : " i Y".utf8), "", "+m".utf8 "[EOS]", sigma_star];
+EU_EXCEPTIONS = Optimize[eu_exc_1 @ eu_exc_2];
+
+# the [u] in 'ew' becomes [ju] after 'n'/'f'/'v' in 'news', 'fewer', 'interview', etc.
+ew_exc = CDRewrite[("+ew".utf8 : " j u".utf8) | ("+iew".utf8 : " j u".utf8), "n".utf8 | "f".utf8 | "+v".utf8, "", sigma_star];
+EW_EXCEPTIONS = Optimize[ew_exc];
+
+# 'oo' is assumed to be [u] in the majority of cases, except for some common cases of [O] and [Y]
+oo_exc = ("+g+oo+d".utf8 : " k Y t".utf8) | ("+b+l+oo+d".utf8 : " p l O t".utf8) | ("+f+l+oo+r".utf8 : " f l O r".utf8) 
+| ("+d+oo+r".utf8 : " t O r".utf8) | ("+f+l+oo+d".utf8 : " f l O t".utf8);
+oo_exceptions = CDRewrite[oo_exc, "", "", sigma_star];
+OO_EXCEPTIONS = Optimize[oo_exceptions]; 
+
+export OTHER_DIGRAPH_EXCEPTIONS = Optimize[AI_EXCEPTIONS @ EU_EXCEPTIONS @ EW_EXCEPTIONS @ OO_EXCEPTIONS];
+
+#######################################
+#
+#   A_RULES
+#
+#######################################
+
+# We assume 'a' is generally long, [ei], before a consonant + 'e', otherwise [a]
+
+# Some common exceptions are 'are' and 'have'
+spade_exc = ("+a+r+e".utf8 : " a r".utf8) | ("+h+a+v+e".utf8 : " h a v".utf8);
+spade_rule_exceptions = CDRewrite[spade_exc, "[BOS]", "[EOS]", sigma_star];
+SPADE_RULE_EXCEPTIONS = Optimize[spade_rule_exceptions];
+
+# We assume 'a' is pronounced [E] before 're' in words like 'care', 'shared', 'software'
+care_rule = CDRewrite[("+a".utf8 : " E".utf8), "", "+r+e", sigma_star];
+CARE_RULE = Optimize[care_rule];
+
+# 'o' and 'a' tend to sound like [9] and [O] respectively after 'w' in words like 'world' and 'water'
+world_rule = CDRewrite[("+w+o".utf8 : " v 9".utf8) | ("+w+a".utf8 : " v O".utf8), "[BOS]", common.plus_or_space common.consonant, sigma_star];
+WORLD_RULE = Optimize[world_rule];
+
+# Otherwise [ei] in words like 'spade', 'states', 'face'
+spade_rule = CDRewrite[("+a".utf8 : " ei".utf8), "", common.plus_or_space common.consonant "+e".utf8, sigma_star];
+SPADE_RULE = Optimize[spade_rule];
+
+# Before 'll', 'a' is pronounced [O]
+all_rule = CDRewrite[("+a".utf8 : " O".utf8), "", "+l+l".utf8, sigma_star];
+ALL_RULE = Optimize[all_rule];
+
+export A_RULES = Optimize[SPADE_RULE_EXCEPTIONS @ CARE_RULE @ WORLD_RULE @ SPADE_RULE @ ALL_RULE];
+
+#######################################
+#
+#   GH_RULES
+#
+#######################################
+
+# 'gh' is pronounced [f] and 'au' [a] in all words containing, or derived from, the word 'laugh'
+laugh_rule = CDRewrite[("+l+au+g+h".utf8 : " l a f".utf8), "[BOS]", "", sigma_star];
+LAUGH_RULE = Optimize[laugh_rule];
+
+# It is typically pronounced simply as [k] at the beginnings of words like 'ghost'
+ghost_rule = CDRewrite[("+g+h".utf8 : " k".utf8), "[BOS]", "", sigma_star];
+GHOST_RULE = Optimize[ghost_rule];
+
+# Otherwise, 'gh' is typically dropped. We assume 'eigh','igh','augh' and 'ough' are generally pronounced as in:
+# 'weight','light','daughter' and 'though' but this can vary greatly in English 
+default_gh = ("+h+ei+g+h".utf8 : " h ai".utf8) | ("+ei+g+h".utf8 : " ei".utf8) | ("+i+g+h".utf8 : " ai".utf8) | ("+au+g+h".utf8 : " O".utf8)
+| ("+t+h+r+ou+g+h".utf8 : " T r u".utf8) | ("+e+n+ou+g+h".utf8 : " i n 9 f".utf8) | ("+ou+g+h".utf8 : " O".utf8);
+default_gh_rules = CDRewrite[default_gh, "", "", sigma_star];
+DEFAULT_GH = Optimize[default_gh_rules];
+
+export GH_RULES = Optimize[LAUGH_RULE @ GHOST_RULE @ DEFAULT_GH];
+
+#######################################
+#
+#   Y_RULES
+#
+#######################################
+
+# We assume 'y' is always pronounced [j] at the beginnings of words
+yes_rule = CDRewrite[("+y".utf8 : " j".utf8), "[BOS]", "", sigma_star];
+YES_RULE = Optimize[yes_rule];
+
+# as [ai] in these common words
+by_exc = ("+b+y".utf8 : " b ai".utf8) | ("+m+y".utf8 : " m ai".utf8) | ("+f+l+y".utf8 : " f l ai".utf8) | ("+w+h+y".utf8 : " v ai".utf8);
+by_rule = CDRewrite[by_exc, "[BOS]", "[EOS]", sigma_star];
+BY_RULE = Optimize[by_rule];
+
+# and otherwise typically [i] at the ends of words like 'city', 'energy'
+city_rule = CDRewrite[("+y".utf8 : " i".utf8), "", "[EOS]", sigma_star];
+CITY_RULE = Optimize[city_rule];
+
+export Y_RULES = Optimize[YES_RULE @ BY_RULE @ CITY_RULE]; 
+
+#######################################
+#
+#   VARIOUS_COMMON_RULES
+#
+#######################################
+
+# 'g' pronounced [tsj] in 'giant', 'geographic'
+giant_rule = CDRewrite[("+g+i+a".utf8 : " t s j ai a".utf8) | ("+g+e+o".utf8 : " t s j i O"), "[BOS]", "", sigma_star];
+GIANT_RULE = Optimize[giant_rule];
+
+# assume 'o' is pronounced [ou] at the ends of words, apart from hard-coded exceptions like 'who' and 'to'
+go_rule = CDRewrite[("+o".utf8 : " ou".utf8), "", "[EOS]", sigma_star];
+GO_RULE = Optimize[go_rule]; 
+
+# 'ua' pronounced [a] in 'guard', 'guardian'
+guard_rule = CDRewrite[("+u+a".utf8 : " a".utf8), "+g".utf8, "+r+d".utf8, sigma_star];
+GUARD_RULE = Optimize[guard_rule];
+
+# 'uni' pronounced [junI] in words like 'university', 'junior'
+universe_rule = CDRewrite[("+u+n+i".utf8 : " j u n I".utf8), "", "", sigma_star];
+UNIVERSE_RULE = Optimize[universe_rule];
+
+# 'un' typically pronounced [9n] in words like 'under', 'until', 'sun'
+under_rule = CDRewrite[("+u".utf8 : " 9".utf8), "", "+n".utf8, sigma_star];
+UNDER_RULE = Optimize[under_rule];
+
+# many frequent words end in 'ation' ('nation', 'association'), pronounced [eisjOn]
+nation = ("+a+t+i+o+n".utf8 : " ei s j O n".utf8) | ("+ia+t+i+o+n".utf8 : " i ei s j O n".utf8) | (" i ei+t+i+o+n".utf8 : " i ei s j O n".utf8);
+nation_rule = CDRewrite[nation, "", "[EOS]", sigma_star];
+NATION_RULE = Optimize[nation_rule];
+
+# 'ti' otherwise pronounced [sj] in 'national', 'function', etc. 
+national_rule = CDRewrite[("+t+i+o".utf8 : " s j O".utf8), "", "+n".utf8, sigma_star];
+NATIONAL_RULE = Optimize[national_rule];
+
+# We assume 'th' is generally pronounced [T] at the start ('thunder', 'thorn')
+# (that is, with some very common exceptions ('the', 'that') already hardcoded)
+# and end of words ('with','north'), otherwise we assume the voiced variant [D]
+th_rule_1 = CDRewrite[("+t+h".utf8 : " T".utf8), "[BOS]", "", sigma_star];
+th_rule_2 = CDRewrite[("+t+h".utf8 : " T".utf8), "", "[EOS]", sigma_star];
+THORN_RULE = Optimize[th_rule_1 @ th_rule_2];
+
+# We do this here so that 'th' is prioritized over other digraphs in words like 'months'
+other_rule = CDRewrite[("+t+h".utf8 : " D".utf8), "", "", sigma_star];
+OTHER_RULE = Optimize[other_rule];
+
+export VARIOUS_COMMON_RULES = Optimize[GIANT_RULE @ GO_RULE @ GUARD_RULE @ UNIVERSE_RULE @ UNDER_RULE 
+@ NATION_RULE @ NATIONAL_RULE @ THORN_RULE @ OTHER_RULE];
+
+#######################################
+#
+#   ENDS_WITH_E
+#
+#######################################
+
+# Some very common words where 'e' is not dropped at the end:
+common_ends_with_e = ("+t+h+e".utf8 : " D E".utf8) | ("+b+e".utf8 : " p i".utf8) | ("+m+e".utf8 : " m i".utf8) | ("+h+e".utf8 : " h i".utf8) 
+| ("+w+e".utf8 : " v i".utf8) | ("+s+h+e".utf8 : " s j i".utf8);
+common_ends_with_e_rule = CDRewrite[common_ends_with_e, "[BOS]", "[EOS]", sigma_star];
+COMMON_ENDS_WITH_E = Optimize[common_ends_with_e_rule];
+
+# 'e' is typically pronounced as [E] at the end of a word before 's' and immediately after 's'/'c'/'g'/'x'/'sh'/'ch'/'z' ('faces', 'roses', etc.)
+ends_with_es = ("+e+s".utf8 : " E s".utf8);
+ends_with_es_rule = CDRewrite[ends_with_es, ("+s".utf8 | " s".utf8 | " s j".utf8 | "+g".utf8 
+| "+x".utf8 | "+z".utf8 | " t s j".utf8), "[EOS]", sigma_star];
+ENDS_WITH_ES = Optimize[ends_with_es_rule];
+
+# Similarly, 'e' is pronounced [E] at the end of a word before 'd', but typically only after 't' and 'd' in words like 'united', 'decided'
+ends_with_ed = ("+e+d".utf8 : " E t".utf8);
+ends_with_ed_rule = CDRewrite[ends_with_ed, common.plus_or_space "t".utf8 | common.plus_or_space "d".utf8, "[EOS]", sigma_star];
+ENDS_WITH_ED = Optimize[ends_with_ed_rule];
+
+# We add a [u] sound in the clusters 'cle','ble','ckle', 'tle', 'ple',  (+'s') at the ends of words like 'possible','articles'
+add_back_vowel = ("+c+l".utf8 : " k u l".utf8) | ("+b+l".utf8 : " p u l".utf8) | (" h k l".utf8 : " h k u l".utf8)
+| (" h t l".utf8 : " h t u l".utf8) | (" h p l".utf8 : " h p u l".utf8);
+add_back_vowel_rule = CDRewrite[add_back_vowel, "", "+e".utf8 "[EOS]" | "+e+s".utf8 "[EOS]", sigma_star];
+ADD_BACK_VOWEL = Optimize[add_back_vowel_rule];
+
+# Elsewhere, we assume that the 'e' is dropped at the ends of words like 'like', 'comes','named'
+ends_with_silent_e = ("+e".utf8 : "".utf8) | ("+e+s".utf8 : " s".utf8) | ("+e+d".utf8 : " t".utf8);
+ends_with_silent_e_rule = CDRewrite[ends_with_silent_e, "", "[EOS]", sigma_star];
+ENDS_WITH_SILENT_E = Optimize[ends_with_silent_e_rule];
+
+export ENDS_WITH_E = Optimize[COMMON_ENDS_WITH_E @ ENDS_WITH_ES @ ENDS_WITH_ED @ ADD_BACK_VOWEL @ ENDS_WITH_SILENT_E];
+
+#### FINAL STEPS ################################################################################################
+#
+#################################################################################################################
+
+default_digraphs = ("+ai".utf8 : " ei".utf8)
+  | ("+ay".utf8 : " ei".utf8)
+  | ("+au".utf8 : " O".utf8)
+  | ("+c+h".utf8 : " k".utf8)
+  | ("+c+k".utf8 : " k".utf8)
+  | ("+ea".utf8 : " i".utf8)
+  | ("+ee".utf8 : " i".utf8)
+  | ("+ei".utf8 : " i".utf8)
+  | ("+e+o".utf8 : " i O".utf8)
+  | ("+ea".utf8 : " i".utf8)
+  | ("+eu".utf8 : " u".utf8)
+  | ("+ey".utf8 : " i".utf8)
+  | ("+ew".utf8 : " u".utf8)
+  | ("+g+n".utf8 : " n".utf8)
+  | ("+g+h".utf8 : "".utf8)
+  | ("+i+a".utf8 : " i a".utf8)
+  | ("+ie".utf8 : " i".utf8)
+  | ("+k+n".utf8 : " n".utf8) 
+  | ("+l+k".utf8 : " l_0 k".utf8) 
+  | ("+l+t".utf8 : " l_0 t".utf8) 
+  | ("+l+p".utf8 : " l_0 p".utf8)
+  | ("+m+p".utf8 : " m_0 p".utf8)
+  | ("+n+t".utf8 : " n_0 t".utf8)
+  | ("+oa".utf8 : " ou".utf8)
+  | ("+oe".utf8 : " ou".utf8)
+  | ("+oi".utf8 : " Oi".utf8)
+  | ("+oo".utf8 : " u".utf8)
+  | ("+ou".utf8 : " au".utf8)
+  | ("+oy".utf8 : " Oi".utf8)
+  | ("+ow".utf8 : " ou".utf8)
+  | ("+p+h".utf8 : " f".utf8)
+  | ("+r+c+t".utf8 : " r_0 t".utf8)
+  | ("+r+k".utf8 : " r_0 k".utf8)
+  | ("+r+p".utf8 : " r_0 p".utf8) 
+  | ("+r+s".utf8 : " r_0 s".utf8) 
+  | ("+r+t".utf8 : " r_0 t".utf8) 
+  | ("+s+h".utf8: " s j".utf8)
+  | ("s+n".utf8 : "s t n".utf8)
+  | ("+ue".utf8 : " u".utf8)
+  | ("+ui".utf8 : " I".utf8)
+  | ("+w+h".utf8 : " v".utf8)
+  | ("+w+r".utf8 : " r".utf8);
+
+default_digraphs_rule = CDRewrite[default_digraphs, "", "", sigma_star];
+export BASIC_DIGRAPHS = Optimize[default_digraphs_rule];
+
+default_g2p = ("+b".utf8 : " p".utf8)
+  | ("+c".utf8 : " k".utf8)
+  | ("+d".utf8 : " t".utf8)
+  | ("+e".utf8 : " E".utf8)
+  | ("+g".utf8 : " k".utf8)
+  | ("+i".utf8 : " I".utf8)
+  | ("+j".utf8 : " t j".utf8)
+  | ("+o".utf8 : " O".utf8)
+  | ("+u".utf8 : " u".utf8)
+  | ("+w".utf8 : " v".utf8)
+  | ("+x".utf8 : " k s".utf8)
+  | ("+y".utf8 : " I".utf8)
+  | ("+z".utf8 : " s".utf8);
+
+default_g2p_rule = CDRewrite[default_g2p, "", "", sigma_star];
+export BASIC_G2P = Optimize[default_g2p_rule];
+
+delete_plus_symbol = CDRewrite["+".utf8 : " ", "", "", sigma_star];
+DELETE_PLUS = Optimize[delete_plus_symbol];
+
+simplify_double = (" p p".utf8 : " p".utf8) | (" t t".utf8 : " t".utf8) 
+  | (" f f".utf8 : " f".utf8) | (" k k".utf8 : " k".utf8) 
+  | (" l l".utf8 : " l".utf8) | (" m m".utf8 : " m".utf8) 
+  | (" n n".utf8 : " n".utf8) | (" r r".utf8 : " r".utf8) 
+  | (" s s".utf8 : " s".utf8) | (" I I".utf8 : " I".utf8)
+  | (" j j".utf8 : " j".utf8);
+simplify_double_rule = CDRewrite[simplify_double, "", "", sigma_star];
+export SIMPLIFY_DOUBLE = Optimize[simplify_double_rule];
+
+fronting = (" k".utf8 : " c".utf8) | (" k_h".utf8 : " c_h".utf8);
+fronting_rule = CDRewrite[fronting, "", common.space common.front_vowel, sigma_star];
+export FRONTING = Optimize[fronting_rule]; 
+
+export STEP_1 = Optimize[ALIGN_GRAPHEMES];
+export STEP_2 = Optimize[HARDCODED @ NG_NK_ALL @ C_AS_S @ ASPIRATION @ I_RULES @ EA_EXCEPTIONS @ OTHER_DIGRAPH_EXCEPTIONS @ A_RULES 
+@ GH_RULES @ Y_RULES @ VARIOUS_COMMON_RULES @ ENDS_WITH_E];
+export STEP_3 = Optimize[BASIC_DIGRAPHS @ BASIC_G2P @ DELETE_PLUS @ SIMPLIFY_DOUBLE @ FRONTING];
+
+export G2P = Optimize[STEP_1 @ STEP_2 @ STEP_3];
