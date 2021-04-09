@@ -31,6 +31,9 @@ export vowel = Optimize[
 | "ee".utf8 | "ei".utf8 | "eu".utf8 | "ew".utf8 | "ie".utf8 | "oa".utf8 | "oe".utf8 | "oi".utf8 
 | "oo".utf8 | "ou".utf8 | "oy".utf8 | "ow".utf8 | "ue".utf8 | "ui".utf8];
 
+export front_vowel = Optimize["e".utf8 | "é".utf8 | "i".utf8 | "í".utf8 |
+"y".utf8 | "ý".utf8 | "E".utf8 | "I".utf8 | "j".utf8 | "ei".utf8];
+
 export ALPHABET = Optimize[
            "A".utf8 | "Á".utf8 | "B".utf8 | "D".utf8 | "Ð".utf8 |
            "E".utf8 | "É".utf8 | "F".utf8 | "G".utf8 | "H".utf8 |

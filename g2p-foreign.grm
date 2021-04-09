@@ -83,13 +83,18 @@ ng_nk = ("+i".utf8 : " i".utf8) | ("+u".utf8 : " 9".utf8) | ("+ou".utf8 : " 9".u
 ng_nk_rule = CDRewrite[ng_nk, "", "+n+g" | "+n+k", sigma_star];
 NG_NK = Optimize[ng_nk_rule];
 
-# in standard Icelandic pronunciation of English 'nk' becomes 'N_0k' in 'bank', 'think', etc.
+# In standard Icelandic pronunciation of English, 'nk' becomes [J_0c] in a front vowel environment like 'thinking'
+front_nasals = ("+n+k".utf8 : " J_0 c".utf8);
+front_nasals_rule = CDRewrite[front_nasals, "", common.plus_or_space common.front_vowel, sigma_star];
+FRONT_NASALS = Optimize[front_nasals_rule];
+
+# Elsewhere 'nk' becomes [N_0k] in 'bank', 'think', etc.
 # 'ng', meanwhile', typically pronounced something like [N]
 nasals = ("+n+g".utf8 : " N".utf8) | ("+n+k".utf8 : " N_0 k".utf8);
 nasals_rule = CDRewrite[nasals, "", "", sigma_star];
 NASALS = Optimize[nasals_rule];
 
-export NG_NK_ALL = Optimize[NG_E @ NG_NK @ NASALS];
+export NG_NK_ALL = Optimize[NG_E @ NG_NK @ FRONT_NASALS @ NASALS];
 
 #######################################
 #
@@ -322,7 +327,7 @@ yes_rule = CDRewrite[("+y".utf8 : " j".utf8), "[BOS]", "", sigma_star];
 YES_RULE = Optimize[yes_rule];
 
 # as [ai] in these common words
-by_exc = ("+b+y".utf8 : " b ai".utf8) | ("+m+y".utf8 : " m ai".utf8) | ("+f+l+y".utf8 : " f l ai".utf8) | ("+w+h+y".utf8 : " x ai".utf8);
+by_exc = ("+b+y".utf8 : " b ai".utf8) | ("+m+y".utf8 : " m ai".utf8) | ("+f+l+y".utf8 : " f l ai".utf8) | ("+w+h+y".utf8 : " v ai".utf8);
 by_rule = CDRewrite[by_exc, "[BOS]", "[EOS]", sigma_star];
 BY_RULE = Optimize[by_rule];
 
@@ -461,7 +466,7 @@ default_digraphs = ("+ai".utf8 : " ei".utf8)
   | ("s+n".utf8 : "s t n".utf8)
   | ("+ue".utf8 : " u".utf8)
   | ("+ui".utf8 : " I".utf8)
-  | ("+w+h".utf8 : " x".utf8)
+  | ("+w+h".utf8 : " v".utf8)
   | ("+w+r".utf8 : " r".utf8);
 
 default_digraphs_rule = CDRewrite[default_digraphs, "", "", sigma_star];
@@ -496,9 +501,13 @@ simplify_double = (" p p".utf8 : " p".utf8) | (" t t".utf8 : " t".utf8)
 simplify_double_rule = CDRewrite[simplify_double, "", "", sigma_star];
 export SIMPLIFY_DOUBLE = Optimize[simplify_double_rule];
 
+fronting = (" k".utf8 : " c".utf8) | (" k_h".utf8 : " c_h".utf8);
+fronting_rule = CDRewrite[fronting, "", common.space common.front_vowel, sigma_star];
+export FRONTING = Optimize[fronting_rule]; 
+
 export STEP_1 = Optimize[ALIGN_GRAPHEMES];
 export STEP_2 = Optimize[HARDCODED @ NG_NK_ALL @ C_AS_S @ ASPIRATION @ I_RULES @ EA_EXCEPTIONS @ OTHER_DIGRAPH_EXCEPTIONS @ A_RULES 
 @ GH_RULES @ Y_RULES @ VARIOUS_COMMON_RULES @ ENDS_WITH_E];
-export STEP_3 = Optimize[BASIC_DIGRAPHS @ BASIC_G2P @ DELETE_PLUS @ SIMPLIFY_DOUBLE];
+export STEP_3 = Optimize[BASIC_DIGRAPHS @ BASIC_G2P @ DELETE_PLUS @ SIMPLIFY_DOUBLE @ FRONTING];
 
 export G2P = Optimize[STEP_1 @ STEP_2 @ STEP_3];
